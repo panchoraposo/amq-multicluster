@@ -1,11 +1,11 @@
 all:
   vars:
     git_repo_url: "https://github.com/panchoraposo/amq-multicluster.git"
+    oc_contexts:
+      - amq1
+      - amq2
+      - amq3
   hosts:
-    amq1:
-      oc_context: "amq1"
-    amq2:
-      oc_context: "amq2"
-    amq3:
-      oc_context: "amq3"
+    localhost:
+      ansible_connection: local
 

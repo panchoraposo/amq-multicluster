@@ -1,41 +1,47 @@
 - name: Bootstrap OpenShift GitOps + Argo Applications
-  hosts: all
+  hosts: localhost
+  connection: local
   gather_facts: false
   vars:
     project_root: "{{ playbook_dir | dirname }}"
   tasks:
-    - name: Install OpenShift GitOps operator
+    - name: Install OpenShift GitOps operator (all contexts)
       ansible.builtin.command: >
-        oc --context {{ oc_context }} apply -f {{ project_root }}/ansible/files/openshift-gitops-operator.yaml
+        oc --context {{ item }} apply -f {{ project_root }}/ansible/files/openshift-gitops-operator.yaml
+      loop: "{{ oc_contexts }}"
       changed_when: true
 
-    - name: Wait for GitOps operator CSV to be Succeeded
+    - name: Wait for GitOps operator CSV to be Succeeded (all contexts)
       ansible.builtin.command: >
-        oc --context {{ oc_context }} -n openshift-gitops-operator
+        oc --context {{ item }} -n openshift-gitops-operator
         wait --for=jsonpath='{.status.phase}'=Succeeded
         csv -l operators.coreos.com/openshift-gitops-operator.openshift-gitops-operator
         --timeout=600s
+      loop: "{{ oc_contexts }}"
       changed_when: false
 
-    - name: Wait for openshift-gitops namespace to exist
+    - name: Wait for openshift-gitops namespace to exist (all contexts)
       ansible.builtin.command: >
-        oc --context {{ oc_context }} get ns openshift-gitops
+        oc --context {{ item }} get ns openshift-gitops
       register: ns_check
       retries: 60
       delay: 5
       until: ns_check.rc == 0
       changed_when: false
+      loop: "{{ oc_contexts }}"
 
-    - name: Wait for openshift-gitops-server deployment to be Available
+    - name: Wait for openshift-gitops-server deployment to be Available (all contexts)
       ansible.builtin.command: >
-        oc --context {{ oc_context }} -n openshift-gitops
+        oc --context {{ item }} -n openshift-gitops
         wait --for=condition=Available
         deploy -l app.kubernetes.io/name=openshift-gitops-server
         --timeout=600s
+      loop: "{{ oc_contexts }}"
       changed_when: false
 
-    - name: Apply bootstrap Argo CD Application for this cluster
+    - name: Apply bootstrap Argo CD Application for each context
       ansible.builtin.command: >
-        oc --context {{ oc_context }} apply -f {{ project_root }}/gitops/bootstrap/{{ oc_context }}.yaml
+        oc --context {{ item }} apply -f {{ project_root }}/gitops/bootstrap/{{ item }}.yaml
+      loop: "{{ oc_contexts }}"
       changed_when: true
 
