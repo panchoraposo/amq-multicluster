@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+umask 0002
+
 MQTT_HOST="${MQTT_HOST:-amq-amq1-mqtts-lb.amq-multicluster-amq.svc}"
 MQTT_PORT="${MQTT_PORT:-8883}"
 
