@@ -142,15 +142,15 @@ spec:
             - name: DEMO_UI_AMQ3_COLOR
               value: "#a21caf"
             - name: DEMO_CONSUMERS_AMQ1_SNAPSHOT_URL
-              value: http://event-consumer:8081/api/snapshot
+              value: http://event-consumer-amq-multicluster.apps.cluster-g4hb2.g4hb2.sandbox1269.opentlc.com/api/snapshot
             - name: DEMO_CONSUMERS_AMQ2_SNAPSHOT_URL
-              value: http://event-consumer:8081/api/snapshot
+              value: http://event-consumer-amq-multicluster.apps.cluster-2jph4.2jph4.sandbox5374.opentlc.com/api/snapshot
             - name: DEMO_CONSUMERS_AMQ3_SNAPSHOT_URL
               value: http://event-consumer:8081/api/snapshot
             - name: DEMO_JOLOKIA_AMQ1_BASE_URL
-              value: http://amq-amq3-wconsj-0-svc:8161/console/jolokia
+              value: http://amq-amq1-wconsj-0-svc-rte-amq-multicluster.apps.cluster-g4hb2.g4hb2.sandbox1269.opentlc.com/console/jolokia
             - name: DEMO_JOLOKIA_AMQ2_BASE_URL
-              value: http://amq-amq3-wconsj-0-svc:8161/console/jolokia
+              value: http://amq-amq2-wconsj-0-svc-rte-amq-multicluster.apps.cluster-2jph4.2jph4.sandbox5374.opentlc.com/console/jolokia
             - name: DEMO_JOLOKIA_AMQ3_BASE_URL
               value: http://amq-amq3-wconsj-0-svc:8161/console/jolokia
             - name: DEMO_JOLOKIA_USERNAME

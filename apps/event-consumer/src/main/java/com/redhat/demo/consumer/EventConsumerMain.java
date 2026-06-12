@@ -10,6 +10,7 @@ import jakarta.inject.Inject;
 
 import javax.jms.Connection;
 import javax.jms.ConnectionFactory;
+import javax.jms.BytesMessage;
 import javax.jms.Message;
 import javax.jms.MessageConsumer;
 import javax.jms.Session;
@@ -23,6 +24,7 @@ import java.util.Deque;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
+import java.nio.charset.StandardCharsets;
 
 @QuarkusMain
 public class EventConsumerMain implements QuarkusApplication {
@@ -110,6 +112,13 @@ public class EventConsumerMain implements QuarkusApplication {
       String body = null;
       if (msg instanceof TextMessage tm) {
         body = tm.getText();
+      } else if (msg instanceof BytesMessage bm) {
+        long len = bm.getBodyLength();
+        if (len > 0 && len < Integer.MAX_VALUE) {
+          byte[] data = new byte[(int) len];
+          bm.readBytes(data);
+          body = new String(data, StandardCharsets.UTF_8);
+        }
       }
 
       String key = msg.getJMSMessageID();
