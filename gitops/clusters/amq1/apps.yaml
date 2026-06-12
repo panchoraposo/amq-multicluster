@@ -107,6 +107,8 @@ spec:
               value: admin
             - name: MQTT_TOPIC
               value: iot/events/v4
+            - name: MQTT_TOPIC_ROOT
+              value: sensors
             - name: DEVICE_COUNT
               value: "25"
             - name: MQTT_INTERVAL_MS

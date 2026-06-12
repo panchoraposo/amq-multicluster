@@ -137,7 +137,7 @@
       </div>
       <div style="min-width:0">
         <h1>AMQ Broker · Multicluster</h1>
-        <p>On‑prem devices → HAProxy → AMQ1/AMQ2 · Azure‑only devices → AMQ3</p>
+        <p>On‑prem devices → HAProxy → AMQ1/AMQ2 · Public Cloud‑only devices → AMQ3</p>
       </div>
     </div>
     <div class="spacer"></div>
@@ -213,8 +213,11 @@
     let rr = 0; // for on-prem distribution when deltas are unknown
 
     const ANCHORS = {
+      dev1:{x:.12,y:.12},
+      dev2:{x:.22,y:.09},
+      dev3:{x:.22,y:.18},
       onprem:{x:.34,y:.16}, // HAProxy ingress for on-prem devices (AMQ1/AMQ2)
-      azure:{x:.82,y:.16},  // Azure-only devices (AMQ3)
+      cloud:{x:.82,y:.16},  // Public Cloud-only devices (AMQ3)
       br1:{x:.18,y:.48}, br2:{x:.50,y:.48}, br3:{x:.82,y:.48},
       con1:{x:.18,y:.82}, con2:{x:.50,y:.82}, con3:{x:.82,y:.82},
     };
@@ -316,8 +319,11 @@
       const s2 = snapshots.amq2 || null;
       const s3 = snapshots.amq3 || null;
 
+      ensureNode("dev1", `<div class="endpoint"><div class="ic">📟</div><div class="lbl">Devices</div><div class="sub">on‑prem sensors<div class="badge">MQTTS</div></div></div>`);
+      ensureNode("dev2", `<div class="endpoint"><div class="ic">🌡️</div><div class="lbl">Sensor</div><div class="sub">telemetry<div class="badge">topic tree</div></div></div>`);
+      ensureNode("dev3", `<div class="endpoint"><div class="ic">🧭</div><div class="lbl">Gateway</div><div class="sub">edge clients<div class="badge">MQTTS</div></div></div>`);
       ensureNode("onprem", `<div class="endpoint"><div class="ic">🧭</div><div class="lbl">HAProxy (on‑prem)</div><div class="sub">routes to ${siteLabel("amq1")} or ${siteLabel("amq2")}<div class="badge">L4 TCP</div></div></div>`);
-      ensureNode("azure", `<div class="endpoint"><div class="ic">🧩</div><div class="lbl">Azure‑only devices</div><div class="sub">Node‑RED → ${siteLabel("amq3")}<div class="badge">MQTTS</div></div></div>`);
+      ensureNode("cloud", `<div class="endpoint"><div class="ic">☁️</div><div class="lbl">Public Cloud‑only devices</div><div class="sub">Node‑RED → ${siteLabel("amq3")}<div class="badge">MQTTS</div></div></div>`);
 
       ensureNode("br-amq1", brokerCard("amq1", s1));
       ensureNode("br-amq2", brokerCard("amq2", s2));
@@ -327,8 +333,11 @@
       ensureNode("con-amq2", `<div class="endpoint"><div class="ic">📥</div><div class="lbl">Consumer</div><div class="sub">${siteLabel("amq2")}</div></div>`);
       ensureNode("con-amq3", `<div class="endpoint"><div class="ic">📥</div><div class="lbl">Consumer</div><div class="sub">${siteLabel("amq3")}</div></div>`);
 
+      moveNode("dev1", layout.dev1);
+      moveNode("dev2", layout.dev2);
+      moveNode("dev3", layout.dev3);
       moveNode("onprem", layout.onprem);
-      moveNode("azure", layout.azure);
+      moveNode("cloud", layout.cloud);
       moveNode("br-amq1", layout.br1);
       moveNode("br-amq2", layout.br2);
       moveNode("br-amq3", layout.br3);
@@ -339,10 +348,14 @@
 
     function drawPaths(){
       pathsG.innerHTML = "";
+      // on-prem devices -> HAProxy
+      pathsG.appendChild(linePath(cubic(layout.dev1, layout.onprem, 0.25), "rgba(56,189,248,.22)", {w:"2.4", dash:"10 10"}));
+      pathsG.appendChild(linePath(cubic(layout.dev2, layout.onprem, 0.25), "rgba(56,189,248,.22)", {w:"2.4", dash:"10 10"}));
+      pathsG.appendChild(linePath(cubic(layout.dev3, layout.onprem, 0.25), "rgba(56,189,248,.22)", {w:"2.4", dash:"10 10"}));
       // ingest lines
       pathsG.appendChild(linePath(cubic(layout.onprem, layout.br1), "rgba(56,189,248,.28)", {w:"2.9", dash:"10 10"}));
       pathsG.appendChild(linePath(cubic(layout.onprem, layout.br2), "rgba(56,189,248,.28)", {w:"2.9", dash:"10 10"}));
-      pathsG.appendChild(linePath(cubic(layout.azure, layout.br3), "rgba(56,189,248,.28)", {w:"2.9", dash:"10 10"}));
+      pathsG.appendChild(linePath(cubic(layout.cloud, layout.br3), "rgba(56,189,248,.28)", {w:"2.9", dash:"10 10"}));
       // consume lines
       pathsG.appendChild(linePath(cubic(layout.br1, layout.con1), "rgba(61,220,132,.26)", {w:"2.9", dash:"10 10"}));
       pathsG.appendChild(linePath(cubic(layout.br2, layout.con2), "rgba(61,220,132,.26)", {w:"2.9", dash:"10 10"}));
@@ -403,7 +416,7 @@
 
     function updateModeHelp(){
       $("#modeHelp").textContent = mode==="topic"
-        ? "Topic (multicast): HAProxy distributes on-prem ingest to AMQ1/AMQ2; Azure-only devices ingest to AMQ3. Mirrors converge data across all brokers."
+        ? "Topic (multicast): on‑prem devices publish to HAProxy and are distributed to AMQ1/AMQ2; Public Cloud‑only devices ingest to AMQ3. Mirrors converge data across all brokers."
         : "Queue (anycast): point-to-point delivery (single consumer receives each message).";
     }
 
@@ -417,7 +430,7 @@
       if(mode==="topic"){
         $("#narr").innerHTML =
           `<b>On‑prem devices</b> connect to <b>HAProxy</b> and are distributed to <b>${siteLabel("amq1")}</b>/<b>${siteLabel("amq2")}</b>. ` +
-          `<b>Azure‑only devices</b> publish directly to <b>${siteLabel("amq3")}</b>. ` +
+          `<b>Public Cloud‑only devices</b> publish directly to <b>${siteLabel("amq3")}</b>. ` +
           `Mirrors replicate the topic so each cluster can consume a converged copy.`;
       }else{
         $("#narr").innerHTML =
@@ -445,9 +458,15 @@
 
     function spawnIngestTo(siteKey, n){
       const br = siteKey==="amq1"?layout.br1 : siteKey==="amq2"?layout.br2 : layout.br3;
-      const src = (siteKey==="amq3") ? layout.azure : layout.onprem;
+      const src = (siteKey==="amq3") ? layout.cloud : layout.onprem;
       for(let i=0;i<n;i++){
-        setTimeout(()=>spawnDot([src, br], COLORS.ingest, 260), i*90);
+        if(siteKey!=="amq3"){
+          const dev = [layout.dev1, layout.dev2, layout.dev3][(i + rr) % 3];
+          setTimeout(()=>spawnDot([dev, layout.onprem], COLORS.ingest, 280), i*90);
+          setTimeout(()=>spawnDot([layout.onprem, br], COLORS.ingest, 260), i*90 + 70);
+        } else {
+          setTimeout(()=>spawnDot([src, br], COLORS.ingest, 260), i*90);
+        }
         setTimeout(()=>spawnDot([br, siteKey==="amq1"?layout.con1:siteKey==="amq2"?layout.con2:layout.con3], COLORS.consume, 260), i*90 + 80);
       }
       if(mode==="topic"){
@@ -468,7 +487,7 @@
       // If we have any snapshot at all, we keep a low constant stream.
       const okAny = SITES.some(s=>!!snapshots[s]);
       if(!okAny) return;
-      // Azure always -> AMQ3
+      // Public Cloud always -> AMQ3
       spawnIngestTo("amq3", 1);
       // On-prem distributed -> AMQ1/AMQ2
       rr = (rr + 1) % 2;
