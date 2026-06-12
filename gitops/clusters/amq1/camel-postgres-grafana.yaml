@@ -1,0 +1,271 @@
+apiVersion: v1
+kind: Secret
+metadata:
+  name: postgres-auth
+  namespace: amq-multicluster-apps
+  annotations:
+    argocd.argoproj.io/sync-wave: "43"
+stringData:
+  database: sensordb
+  username: sensor
+  password: sensor
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: postgres-data
+  namespace: amq-multicluster-apps
+  annotations:
+    argocd.argoproj.io/sync-wave: "43"
+spec:
+  accessModes: ["ReadWriteOnce"]
+  resources:
+    requests:
+      storage: 2Gi
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: postgres
+  namespace: amq-multicluster-apps
+  annotations:
+    argocd.argoproj.io/sync-wave: "44"
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: postgres
+  template:
+    metadata:
+      labels:
+        app: postgres
+    spec:
+      containers:
+        - name: postgres
+          image: registry.redhat.io/rhel9/postgresql-15:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 5432
+          env:
+            - name: POSTGRESQL_DATABASE
+              valueFrom: { secretKeyRef: { name: postgres-auth, key: database } }
+            - name: POSTGRESQL_USER
+              valueFrom: { secretKeyRef: { name: postgres-auth, key: username } }
+            - name: POSTGRESQL_PASSWORD
+              valueFrom: { secretKeyRef: { name: postgres-auth, key: password } }
+          volumeMounts:
+            - name: data
+              mountPath: /var/lib/pgsql/data
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: postgres-data
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: postgres
+  namespace: amq-multicluster-apps
+  annotations:
+    argocd.argoproj.io/sync-wave: "44"
+spec:
+  selector:
+    app: postgres
+  ports:
+    - name: pg
+      port: 5432
+      targetPort: 5432
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: grafana-provisioning
+  namespace: amq-multicluster-apps
+  annotations:
+    argocd.argoproj.io/sync-wave: "45"
+data:
+  datasource.yaml: |
+    apiVersion: 1
+    datasources:
+      - name: Postgres
+        type: postgres
+        access: proxy
+        url: postgres:5432
+        database: sensordb
+        user: sensor
+        secureJsonData:
+          password: sensor
+        jsonData:
+          sslmode: disable
+          postgresVersion: 1500
+          timescaledb: false
+  dashboard.yaml: |
+    apiVersion: 1
+    providers:
+      - name: "Sensors"
+        orgId: 1
+        folder: ""
+        type: file
+        disableDeletion: false
+        editable: true
+        options:
+          path: /etc/grafana/provisioning/dashboards
+  sensors.json: |
+    {
+      "title": "Sensor Telemetry (Live)",
+      "timezone": "browser",
+      "schemaVersion": 39,
+      "version": 1,
+      "refresh": "5s",
+      "panels": [
+        {
+          "type": "timeseries",
+          "title": "Latest sensor values (by type)",
+          "datasource": "Postgres",
+          "targets": [
+            {
+              "format": "time_series",
+              "rawSql": "SELECT ts as time, value as value, sensor_type as metric FROM sensor_events WHERE $__timeFilter(ts) ORDER BY 1",
+              "refId": "A"
+            }
+          ],
+          "gridPos": { "x": 0, "y": 0, "w": 24, "h": 10 }
+        },
+        {
+          "type": "table",
+          "title": "Recent events",
+          "datasource": "Postgres",
+          "targets": [
+            {
+              "format": "table",
+              "rawSql": "SELECT ts, site, device_id, sensor_type, value, unit, factory, line FROM sensor_events ORDER BY ts DESC LIMIT 50",
+              "refId": "B"
+            }
+          ],
+          "gridPos": { "x": 0, "y": 10, "w": 24, "h": 10 }
+        }
+      ]
+    }
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: grafana
+  namespace: amq-multicluster-apps
+  annotations:
+    argocd.argoproj.io/sync-wave: "46"
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: grafana
+  template:
+    metadata:
+      labels:
+        app: grafana
+    spec:
+      containers:
+        - name: grafana
+          image: registry.redhat.io/rhel9/grafana:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 3000
+          env:
+            - name: GF_SECURITY_ADMIN_USER
+              value: admin
+            - name: GF_SECURITY_ADMIN_PASSWORD
+              value: admin
+            - name: GF_AUTH_ANONYMOUS_ENABLED
+              value: "true"
+            - name: GF_AUTH_ANONYMOUS_ORG_ROLE
+              value: Viewer
+            - name: GF_PATHS_PROVISIONING
+              value: /etc/grafana/provisioning
+          volumeMounts:
+            - name: prov
+              mountPath: /etc/grafana/provisioning/datasources/datasource.yaml
+              subPath: datasource.yaml
+            - name: prov
+              mountPath: /etc/grafana/provisioning/dashboards/dashboard.yaml
+              subPath: dashboard.yaml
+            - name: prov
+              mountPath: /etc/grafana/provisioning/dashboards/sensors.json
+              subPath: sensors.json
+      volumes:
+        - name: prov
+          configMap:
+            name: grafana-provisioning
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: grafana
+  namespace: amq-multicluster-apps
+  annotations:
+    argocd.argoproj.io/sync-wave: "46"
+spec:
+  selector:
+    app: grafana
+  ports:
+    - name: http
+      port: 3000
+      targetPort: 3000
+---
+apiVersion: route.openshift.io/v1
+kind: Route
+metadata:
+  name: grafana
+  namespace: amq-multicluster-apps
+  annotations:
+    argocd.argoproj.io/sync-wave: "46"
+spec:
+  to:
+    kind: Service
+    name: grafana
+  port:
+    targetPort: http
+  tls:
+    termination: edge
+    insecureEdgeTerminationPolicy: Redirect
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: camel-kaoto-consumer
+  namespace: amq-multicluster-apps
+  annotations:
+    argocd.argoproj.io/sync-wave: "47"
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: camel-kaoto-consumer
+  template:
+    metadata:
+      labels:
+        app: camel-kaoto-consumer
+    spec:
+      containers:
+        - name: app
+          image: image-registry.openshift-image-registry.svc:5000/amq-multicluster-apps/camel-kaoto-consumer:latest
+          imagePullPolicy: Always
+          env:
+            - name: QUARKUS_DATASOURCE_JDBC_URL
+              value: jdbc:postgresql://postgres:5432/sensordb
+            - name: QUARKUS_DATASOURCE_USERNAME
+              valueFrom: { secretKeyRef: { name: postgres-auth, key: username } }
+            - name: QUARKUS_DATASOURCE_PASSWORD
+              valueFrom: { secretKeyRef: { name: postgres-auth, key: password } }
+            - name: DEMO_MQTT_HOST
+              value: amq-amq1-mqtts-lb.amq-multicluster-amq.svc
+            - name: DEMO_MQTT_PORT
+              value: "8883"
+            - name: DEMO_MQTT_USERNAME
+              value: admin
+            - name: DEMO_MQTT_PASSWORD
+              value: admin
+            - name: DEMO_MQTT_TOPIC
+              value: sensors/#
+            - name: DEMO_MQTT_INSECURE_TLS
+              value: "true"
+

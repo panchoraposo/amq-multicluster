@@ -1,0 +1,81 @@
+- route:
+    id: init-db
+    from:
+      uri: "timer:init?repeatCount=1"
+      steps:
+        - to:
+            uri: >-
+              sql:CREATE TABLE IF NOT EXISTS sensor_events (
+                id BIGSERIAL PRIMARY KEY,
+                event_id TEXT,
+                ts TIMESTAMPTZ,
+                site TEXT,
+                topic TEXT,
+                device_id TEXT,
+                sensor_type TEXT,
+                value DOUBLE PRECISION,
+                unit TEXT,
+                factory TEXT,
+                line TEXT,
+                raw JSONB
+              )
+        - to:
+            uri: "log:db?level=INFO&showAll=true&multiline=true"
+
+- route:
+    id: sensors-to-db
+    from:
+      uri: >-
+        paho-mqtt5:{{demo.mqtt.topic}}?brokerUrl=ssl://{{demo.mqtt.host}}:{{demo.mqtt.port}}&userName={{demo.mqtt.username}}&password={{demo.mqtt.password}}&automaticReconnect=true&cleanStart=true&sslContextParameters=#insecureSsl
+      steps:
+        - setHeader:
+            name: topic
+            expression:
+              simple: "${header.CamelPahoTopic}"
+        - setHeader:
+            name: event_id
+            expression:
+              jsonpath: "$.eventId"
+        - setHeader:
+            name: ts
+            expression:
+              jsonpath: "$.ts"
+        - setHeader:
+            name: site
+            expression:
+              jsonpath: "$.site"
+        - setHeader:
+            name: device_id
+            expression:
+              jsonpath: "$.deviceId"
+        - setHeader:
+            name: sensor_type
+            expression:
+              jsonpath: "$.sensor.type"
+        - setHeader:
+            name: value
+            expression:
+              jsonpath: "$.sensor.reading.value"
+        - setHeader:
+            name: unit
+            expression:
+              jsonpath: "$.sensor.reading.unit"
+        - setHeader:
+            name: factory
+            expression:
+              jsonpath: "$.location.factory"
+        - setHeader:
+            name: line
+            expression:
+              jsonpath: "$.location.line"
+        - setHeader:
+            name: raw
+            expression:
+              simple: "${body}"
+        - to:
+            uri: >-
+              sql:INSERT INTO sensor_events (event_id, ts, site, topic, device_id, sensor_type, value, unit, factory, line, raw)
+              VALUES (:#event_id, :#ts, :#site, :#topic, :#device_id, :#sensor_type, :#value, :#unit, :#factory, :#line, CAST(:#raw AS jsonb))
+        - to:
+            uri: "log:sensors?level=INFO&showHeaders=false&showBody=false"
+

@@ -35,6 +35,7 @@ resources:
   - imagestreams.yaml
   - buildconfigs.yaml
   - apps.yaml
+  - camel-postgres-grafana.yaml
 
   # Analytics stack (Kaoto + Postgres + Grafana)
   - analytics-postgres.yaml

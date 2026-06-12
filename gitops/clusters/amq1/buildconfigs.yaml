@@ -99,3 +99,29 @@ spec:
   triggers:
     - type: ConfigChange
 
+---
+apiVersion: build.openshift.io/v1
+kind: BuildConfig
+metadata:
+  name: camel-kaoto-consumer
+  namespace: amq-multicluster-apps
+  annotations:
+    argocd.argoproj.io/sync-wave: "41"
+spec:
+  runPolicy: Serial
+  source:
+    type: Git
+    git:
+      uri: https://github.com/panchoraposo/amq-multicluster.git
+      ref: main
+  strategy:
+    type: Docker
+    dockerStrategy:
+      dockerfilePath: apps/camel-kaoto-consumer/Dockerfile
+  output:
+    to:
+      kind: ImageStreamTag
+      name: camel-kaoto-consumer:latest
+  triggers:
+    - type: ConfigChange
+
