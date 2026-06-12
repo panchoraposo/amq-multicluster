@@ -66,7 +66,7 @@ public class EventConsumerMain implements QuarkusApplication {
           conn = cf.createConnection();
           conn.setClientID("event-consumer-" + cfg.site());
           conn.start();
-          session = conn.createSession(false, Session.CLIENT_ACKNOWLEDGE);
+          session = conn.createSession(false, Session.AUTO_ACKNOWLEDGE);
           consumer = session.createDurableSubscriber(session.createTopic(cfg.queue()), "sub-" + cfg.site());
 
           System.out.println("Consumer connected site=" + cfg.site() + " queue=" + cfg.queue() + " url=" + coreUrl);
@@ -78,7 +78,6 @@ public class EventConsumerMain implements QuarkusApplication {
               continue;
             }
             state.onMessage(msg);
-            msg.acknowledge();
           }
         } catch (Exception e) {
           System.err.println("Consume error (will reconnect): " + e.getMessage());
