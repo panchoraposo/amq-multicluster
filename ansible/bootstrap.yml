@@ -76,3 +76,57 @@
       loop: "{{ oc_contexts }}"
       changed_when: true
 
+    - name: Set RHSI link bootstrap contexts
+      ansible.builtin.set_fact:
+        grant_context: "{{ oc_contexts[0] }}"
+        other_contexts: "{{ oc_contexts[1:] }}"
+
+    - name: Wait for Skupper Site CR to be Ready (all contexts)
+      ansible.builtin.command: >
+        oc --context {{ item }} -n amq-multicluster
+        get site {{ item }} -o jsonpath='{.status.status}'
+      register: skupper_site_status
+      retries: 120
+      delay: 5
+      until: skupper_site_status.stdout is defined and skupper_site_status.stdout == "Ready"
+      loop: "{{ oc_contexts }}"
+      changed_when: false
+
+    - name: Wait for AccessGrant on grant_context to be Ready
+      ansible.builtin.command: >
+        oc --context {{ grant_context }} -n amq-multicluster
+        get accessgrant grant-{{ grant_context }} -o jsonpath='{.status.status}'
+      register: grant_ready
+      retries: 120
+      delay: 5
+      until: grant_ready.stdout is defined and grant_ready.stdout == "Ready"
+      changed_when: false
+
+    - name: Read AccessGrant token fields (url/code/ca)
+      ansible.builtin.command: >
+        oc --context {{ grant_context }} -n amq-multicluster
+        get accessgrant grant-{{ grant_context }} -o jsonpath='{.status.{{ item }}}'
+      loop:
+        - url
+        - code
+        - ca
+      register: grant_fields
+      changed_when: false
+
+    - name: Apply AccessToken to link other sites to grant_context
+      ansible.builtin.command: >
+        oc --context {{ item }} -n amq-multicluster apply -f -
+      args:
+        stdin: |
+          apiVersion: skupper.io/v2alpha1
+          kind: AccessToken
+          metadata:
+            name: token-to-{{ grant_context }}
+          spec:
+            url: "{{ (grant_fields.results | selectattr('item','equalto','url') | first).stdout }}"
+            code: "{{ (grant_fields.results | selectattr('item','equalto','code') | first).stdout }}"
+            ca: |-
+          {{ ((grant_fields.results | selectattr('item','equalto','ca') | first).stdout | indent(4, true)) }}
+      loop: "{{ other_contexts }}"
+      changed_when: true
+
