@@ -104,7 +104,7 @@
       if (!url) return;
       try {
         const res = await fetch(url, { cache: "no-store" });
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        if (!res.ok) throw new Error("HTTP " + res.status);
         const data = await res.json();
         document.getElementById(site + "-received").textContent = data.received ?? "-";
         document.getElementById(site + "-dup").textContent = data.duplicates ?? "-";
@@ -114,11 +114,11 @@
       }
 
       try {
-        const res = await fetch(`/api/jolokia/${site}/uptime`, { cache: "no-store" });
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const res = await fetch("/api/jolokia/" + site + "/uptime", { cache: "no-store" });
+        if (!res.ok) throw new Error("HTTP " + res.status);
         const data = await res.json();
         const ms = data?.value?.Uptime;
-        document.getElementById(site + "-uptime").textContent = (typeof ms === "number") ? `${Math.round(ms/1000)}s` : "-";
+        document.getElementById(site + "-uptime").textContent = (typeof ms === "number") ? (Math.round(ms / 1000) + "s") : "-";
       } catch (e) {
         document.getElementById(site + "-uptime").textContent = "-";
       }
