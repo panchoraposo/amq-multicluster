@@ -9,13 +9,15 @@ import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 
 import javax.jms.BytesMessage;
-import javax.jms.Connection;
 import javax.jms.Message;
-import javax.jms.MessageConsumer;
-import javax.jms.Session;
 import javax.jms.TextMessage;
 
-import org.apache.activemq.artemis.jms.client.ActiveMQConnectionFactory;
+import org.apache.activemq.artemis.api.core.client.ActiveMQClient;
+import org.apache.activemq.artemis.api.core.client.ClientConsumer;
+import org.apache.activemq.artemis.api.core.client.ClientMessage;
+import org.apache.activemq.artemis.api.core.client.ClientSession;
+import org.apache.activemq.artemis.api.core.client.ClientSessionFactory;
+import org.apache.activemq.artemis.api.core.client.ServerLocator;
 import org.eclipse.paho.client.mqttv3.IMqttDeliveryToken;
 import org.eclipse.paho.client.mqttv3.MqttCallbackExtended;
 import org.eclipse.paho.client.mqttv3.MqttClient;
@@ -75,10 +77,10 @@ public class EventConsumerMain implements QuarkusApplication {
 
   @Override
   public int run(String... args) throws Exception {
-    // Prefer core/JMS consumption for stable demo counters; MQTT mode is kept as an optional alternative.
+    // Prefer CORE consumption for stable demo counters; MQTT mode is kept as an optional alternative.
     if (cfg.url() != null && !cfg.url().isBlank()) {
-      System.out.println("Consumer starting JMS site=" + cfg.site() + " queue=" + cfg.queue() + " url=" + cfg.url());
-      startJms();
+      System.out.println("Consumer starting CORE site=" + cfg.site() + " queue=" + cfg.queue() + " url=" + cfg.url());
+      startCore();
     } else if (mqtt.host() != null && !mqtt.host().isBlank()) {
       System.out.println("Consumer starting MQTT site=" + mqtt.site() + " topic=" + mqtt.topic() + " host=" + mqtt.host() + ":" + mqtt.port());
       startMqtt();
@@ -137,33 +139,49 @@ public class EventConsumerMain implements QuarkusApplication {
     client.connect(opts);
   }
 
-  private void startJms() {
+  private void startCore() {
     vertx.executeBlocking(promise -> {
       long backoffMs = 1000;
       while (true) {
-        try (ActiveMQConnectionFactory cf = new ActiveMQConnectionFactory(cfg.url(), cfg.username(), cfg.password());
-             Connection connection = cf.createConnection()) {
-          connection.start();
-          try (Session session = connection.createSession(false, Session.AUTO_ACKNOWLEDGE)) {
-            javax.jms.Queue q = session.createQueue(cfg.queue());
-            try (MessageConsumer consumer = session.createConsumer(q)) {
-              System.out.println("JMS consuming queue=" + cfg.queue());
-              while (true) {
-                Message msg = consumer.receive(1000);
-                if (msg != null) {
-                  state.onMessage(msg);
-                }
-              }
+        ServerLocator locator = null;
+        ClientSessionFactory sf = null;
+        ClientSession session = null;
+        ClientConsumer consumer = null;
+        try {
+          locator = ActiveMQClient.createServerLocator(cfg.url());
+          sf = locator.createSessionFactory();
+          session = sf.createSession(cfg.username(), cfg.password(), false, true, true, locator.isHA(), 1);
+          consumer = session.createConsumer(cfg.queue());
+          session.start();
+
+          System.out.println("CORE consuming queue=" + cfg.queue());
+          while (true) {
+            ClientMessage msg = consumer.receive(1000);
+            if (msg == null) {
+              continue;
+            }
+            try {
+              int size = Math.max(0, msg.getBodySize());
+              byte[] data = new byte[size];
+              msg.getBodyBuffer().readBytes(data);
+              state.onPayload(new String(data, StandardCharsets.UTF_8));
+            } finally {
+              msg.acknowledge();
             }
           }
         } catch (Exception e) {
-          System.err.println("JMS consume error (will reconnect): " + e.getMessage());
+          System.err.println("CORE consume error (will reconnect): " + e.getMessage());
           try {
             Thread.sleep(backoffMs);
           } catch (InterruptedException ignored) {
             Thread.currentThread().interrupt();
           }
           backoffMs = Math.min(backoffMs * 2, 30000);
+        } finally {
+          try { if (consumer != null) consumer.close(); } catch (Exception ignored) {}
+          try { if (session != null) session.close(); } catch (Exception ignored) {}
+          try { if (sf != null) sf.close(); } catch (Exception ignored) {}
+          try { if (locator != null) locator.close(); } catch (Exception ignored) {}
         }
       }
     }, false);
