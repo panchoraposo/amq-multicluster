@@ -20,6 +20,18 @@
 </head>
 <body>
   <div class="wrap">
+    <div class="card" style="margin-bottom:14px;">
+      <div class="banner" style="background:{bannerColor};">{bannerLabel} — Visualizer</div>
+      <div class="content" style="display:flex; gap:12px; flex-wrap:wrap;">
+        {#if amq1BrokerConsoleUrl}<a class="pill" href="{amq1BrokerConsoleUrl}" target="_blank" rel="noreferrer">AMQ1 console</a>{/if}
+        {#if amq2BrokerConsoleUrl}<a class="pill" href="{amq2BrokerConsoleUrl}" target="_blank" rel="noreferrer">AMQ2 console</a>{/if}
+        {#if amq3BrokerConsoleUrl}<a class="pill" href="{amq3BrokerConsoleUrl}" target="_blank" rel="noreferrer">AMQ3 console</a>{/if}
+        {#if amq1ConsumerUrl}<a class="pill" href="{amq1ConsumerUrl}" target="_blank" rel="noreferrer">AMQ1 consumer</a>{/if}
+        {#if amq2ConsumerUrl}<a class="pill" href="{amq2ConsumerUrl}" target="_blank" rel="noreferrer">AMQ2 consumer</a>{/if}
+        {#if amq3ConsumerUrl}<a class="pill" href="{amq3ConsumerUrl}" target="_blank" rel="noreferrer">AMQ3 consumer</a>{/if}
+      </div>
+    </div>
+
     <h2 style="margin:0 0 10px 0;">AMQ Broker multicluster demo</h2>
     <div style="margin:0 0 16px 0; color: var(--muted);">
       Banners por cluster (para demo visual): <span class="pill">AMQ1</span> <span class="pill">AMQ2</span> <span class="pill">AMQ3</span>
