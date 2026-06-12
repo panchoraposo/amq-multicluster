@@ -168,6 +168,8 @@ spec:
           ports:
             - containerPort: 8080
           env:
+            - name: DEMO_HA_SITE
+              value: amq1
             - name: DEMO_UI_BANNER_LABEL
               value: AMQ1
             - name: DEMO_UI_BANNER_COLOR

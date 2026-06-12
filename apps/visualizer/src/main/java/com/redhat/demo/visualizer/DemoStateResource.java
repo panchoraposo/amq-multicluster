@@ -64,6 +64,13 @@ public class DemoStateResource {
     String queue();
 
     /**
+     * Artemis routing-type for the queue MBean. For MQTT-published addresses,
+     * routing is multicast by default unless you use anycast prefixes.
+     */
+    @WithDefault("multicast")
+    String queueRoutingType();
+
+    /**
      * Multicast address/topic name shown in Topic mode.
      */
     @WithDefault("iot.events.v3")
@@ -168,7 +175,7 @@ public class DemoStateResource {
 
     String auth = Base64.getEncoder().encodeToString((cfg.username() + ":" + cfg.password()).getBytes(StandardCharsets.UTF_8));
 
-    String qmb = qMbean(queue);
+    String qmb = qMbean(queue, cfg.queueRoutingType());
     String tmb = addrMbean(topic);
     String qAddr = addrMbean(queue);
 
@@ -233,9 +240,9 @@ public class DemoStateResource {
     return new BrokerState(b.id(), b.name(), b.pod(), true, active, q, t);
   }
 
-  private static String qMbean(String name) {
+  private static String qMbean(String name, String routingType) {
     // Mirror of amq-broker-demo: assumes broker name "amq-broker"
-    return "org.apache.activemq.artemis:address=\"" + name + "\",broker=\"amq-broker\",component=addresses,queue=\"" + name + "\",routing-type=\"anycast\",subcomponent=queues";
+    return "org.apache.activemq.artemis:address=\"" + name + "\",broker=\"amq-broker\",component=addresses,queue=\"" + name + "\",routing-type=\"" + routingType + "\",subcomponent=queues";
   }
 
   private static String addrMbean(String addr) {
