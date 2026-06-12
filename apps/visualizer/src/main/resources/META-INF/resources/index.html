@@ -69,6 +69,15 @@
     }
     .endpoint .lbl{font-size:13px;font-weight:600}
     .endpoint .sub{font-size:11px;color:var(--muted)}
+    .badge{display:inline-block;margin-left:6px;padding:1px 7px;border-radius:999px;
+      border:1px solid rgba(255,255,255,.14);background:rgba(0,0,0,.18);color:var(--muted);font-size:10.5px}
+    .dest{
+      width:240px;text-align:center;border-radius:16px;padding:12px 14px;
+      background:linear-gradient(180deg,rgba(255,255,255,.07),rgba(255,255,255,.025));
+      border:1px solid var(--cardb);box-shadow:var(--shadow);
+    }
+    .dest .t{font-size:13px;font-weight:800}
+    .dest .s{margin-top:3px;font-size:11px;color:var(--muted)}
     .broker{
       width:220px;border-radius:16px;padding:14px 15px;
       background:linear-gradient(180deg,rgba(255,255,255,.07),rgba(255,255,255,.025));
@@ -150,17 +159,23 @@
         <div class="node endpoint" style="left:160px;top:120px;">
           <div class="ic">🧩</div>
           <div class="lbl">Node-RED</div>
-          <div class="sub" id="amq1-label-top">AMQ1</div>
+          <div class="sub" id="amq1-label-top">AMQ1 <span class="badge" id="amq1-producers">- prod</span></div>
         </div>
         <div class="node endpoint" style="left:500px;top:120px;">
           <div class="ic">🧩</div>
           <div class="lbl">Node-RED</div>
-          <div class="sub" id="amq2-label-top">AMQ2</div>
+          <div class="sub" id="amq2-label-top">AMQ2 <span class="badge" id="amq2-producers">- prod</span></div>
         </div>
         <div class="node endpoint" style="left:840px;top:120px;">
           <div class="ic">🧩</div>
           <div class="lbl">Node-RED</div>
-          <div class="sub" id="amq3-label-top">AMQ3</div>
+          <div class="sub" id="amq3-label-top">AMQ3 <span class="badge" id="amq3-producers">- prod</span></div>
+        </div>
+
+        <!-- Destination (topic/queue) -->
+        <div class="node dest" style="left:500px;top:52px;">
+          <div class="t" id="dest-title">Topic (multicast)</div>
+          <div class="s mono" id="dest-name">iot.events.v3</div>
         </div>
 
         <!-- Brokers -->
@@ -360,6 +375,25 @@
       try { return JSON.parse(s); } catch { return null; }
     }
 
+    function updateProducerBadges(map) {
+      for (const site of sites) {
+        const el = document.getElementById(site + "-producers");
+        const snap = map[site];
+        if (!el || !snap || !snap.last) {
+          if (el) el.textContent = "- prod";
+          continue;
+        }
+        const set = new Set();
+        for (const ev of snap.last) {
+          if (!ev || !ev.body) continue;
+          const obj = tryParseJson(ev.body);
+          const p = obj && obj.producer ? String(obj.producer) : null;
+          if (p) set.add(p);
+        }
+        el.textContent = set.size + " prod";
+      }
+    }
+
     function renderEvents(map) {
       const tb = document.getElementById("events-tbody");
       if (!tb) return;
@@ -447,6 +481,7 @@
       const snaps = {};
       await Promise.all(sites.map(async (s) => { snaps[s] = await tickSite(s); }));
       await Promise.all(sites.map((s) => tickUptime(s)));
+      updateProducerBadges(snaps);
       renderEvents(snaps);
 
       const total = sites.reduce((acc, s) => acc + (snaps[s] && typeof snaps[s].received === "number" ? snaps[s].received : 0), 0);
@@ -476,9 +511,11 @@
       if (scenario === "queue") {
         if (desc) desc.textContent = "Queue (anycast): each message is delivered to one consumer.";
         if (narr) narr.textContent = "Queue mode: point-to-point semantics (AMQ Queue). In a later step we will wire producers/consumers to a true anycast address.";
+        setText("dest-title", "Queue (anycast)");
       } else {
         if (desc) desc.textContent = "Topic (multicast): every subscriber gets a copy.";
         if (narr) narr.textContent = "Topic mode: publish/subscribe semantics (AMQ Topic). Each site sees replicated events via mirroring.";
+        setText("dest-title", "Topic (multicast)");
       }
     }
     document.getElementById("btn-queue")?.addEventListener("click", () => { scenario = "queue"; localStorage.setItem("scenario", scenario); applyScenario(); });
