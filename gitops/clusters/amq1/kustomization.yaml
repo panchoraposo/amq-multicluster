@@ -28,3 +28,7 @@ resources:
   - buildconfigs.yaml
   - apps.yaml
 
+  # OpenShift console customization (banner + app menu links)
+  - console-banner.yaml
+  - console-links.yaml
+

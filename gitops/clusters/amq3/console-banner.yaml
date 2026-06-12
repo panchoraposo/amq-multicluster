@@ -1,0 +1,10 @@
+apiVersion: console.openshift.io/v1
+kind: ConsoleNotification
+metadata:
+  name: amq-multicluster-banner
+spec:
+  text: "AMQ3"
+  location: BannerTop
+  backgroundColor: "#a21caf"
+  color: "#ffffff"
+

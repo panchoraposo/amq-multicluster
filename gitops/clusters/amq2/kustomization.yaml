@@ -25,3 +25,6 @@ resources:
   - buildconfigs.yaml
   - apps.yaml
 
+  - console-banner.yaml
+  - console-links.yaml
+

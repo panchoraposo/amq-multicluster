@@ -3,132 +3,286 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>AMQ multicluster visualizer</title>
+  <title>AMQ Broker · Multicluster Visualizer</title>
   <style>
-    :root { --bg: #0b1020; --panel: #111a33; --text: #e7ecff; --muted: #a8b3e6; }
-    body { margin: 0; font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial; background: var(--bg); color: var(--text); }
-    .wrap { max-width: 1200px; margin: 0 auto; padding: 20px; }
-    .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
-    .card { background: var(--panel); border: 1px solid rgba(255,255,255,.08); border-radius: 14px; overflow: hidden; }
-    .banner { padding: 14px 16px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; }
-    .content { padding: 14px 16px; color: var(--muted); }
-    .metric { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; color: var(--text); }
-    .pill { display:inline-block; padding: 4px 10px; border-radius: 999px; border: 1px solid rgba(255,255,255,.12); color: var(--text); font-size: 12px; }
-    .footer { margin-top: 16px; color: var(--muted); font-size: 12px; }
-    @media (max-width: 980px) { .grid { grid-template-columns: 1fr; } }
+    :root{
+      --bg0:#0a0d14; --bg1:#121826; --card:rgba(255,255,255,.045);
+      --cardb:rgba(255,255,255,.09); --txt:#e8edf6; --muted:#8b97ad;
+      --green:#3ddc84; --amber:#ffb020; --cyan:#38bdf8; --violet:#a78bfa;
+      --shadow:0 10px 40px rgba(0,0,0,.45);
+      --amq1:{amq1Color}; --amq2:{amq2Color}; --amq3:{amq3Color};
+    }
+    *{box-sizing:border-box}
+    html,body{margin:0;height:100%}
+    body{
+      font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+      color:var(--txt); background:
+        radial-gradient(1200px 700px at 70% -10%, #1b2540 0%, transparent 60%),
+        radial-gradient(900px 600px at 0% 110%, #25121a 0%, transparent 55%),
+        linear-gradient(160deg,var(--bg0),var(--bg1));
+      min-height:100%; overflow-x:hidden;
+    }
+    header{
+      display:flex;align-items:center;gap:16px;padding:18px 26px;
+      border-bottom:1px solid rgba(255,255,255,.06);
+    }
+    .logo{display:flex;align-items:center;gap:12px}
+    .logo .mark{
+      width:38px;height:38px;border-radius:10px;flex:0 0 auto;
+      background:linear-gradient(135deg,#ee0000,#a30000);
+      box-shadow:0 6px 18px rgba(238,0,0,.4);
+      display:grid;place-items:center;font-weight:800;color:#fff;font-size:18px;
+    }
+    .logo h1{font-size:18px;margin:0;font-weight:700;letter-spacing:.2px}
+    .logo p{margin:0;font-size:12px;color:var(--muted)}
+    .spacer{flex:1}
+    .pill{
+      display:inline-flex;align-items:center;gap:7px;font-size:12.5px;
+      padding:7px 12px;border-radius:999px;border:1px solid var(--cardb);
+      background:var(--card);color:var(--muted); text-decoration:none;
+    }
+    .pill:hover{border-color:rgba(255,255,255,.18); color:var(--txt)}
+    .wrap{display:grid;grid-template-columns:1fr 340px;gap:18px;padding:18px 26px}
+    @media(max-width:1100px){.wrap{grid-template-columns:1fr}}
+    .stagewrap{
+      position:relative;background:var(--card);border:1px solid var(--cardb);
+      border-radius:18px;box-shadow:var(--shadow);overflow:hidden;
+    }
+    .stage{position:relative;width:100%;aspect-ratio:16/9;min-height:480px}
+    svg.links{position:absolute;inset:0;width:100%;height:100%;z-index:1}
+    .flow{animation:dashflow 1s linear infinite}
+    @keyframes dashflow{to{stroke-dashoffset:-28}}
+    .node{position:absolute;transform:translate(-50%,-50%);z-index:2}
+    .endpoint{width:130px;text-align:center}
+    .endpoint .ic{
+      width:62px;height:62px;margin:0 auto 8px;border-radius:16px;
+      display:grid;place-items:center;font-size:26px;
+      background:linear-gradient(135deg,rgba(255,255,255,.10),rgba(255,255,255,.03));
+      border:1px solid var(--cardb);box-shadow:var(--shadow)
+    }
+    .endpoint .lbl{font-size:13px;font-weight:600}
+    .endpoint .sub{font-size:11px;color:var(--muted)}
+    .broker{
+      width:240px;border-radius:16px;padding:14px 15px;
+      background:linear-gradient(180deg,rgba(255,255,255,.07),rgba(255,255,255,.025));
+      border:1px solid var(--cardb);box-shadow:var(--shadow);
+    }
+    .btop{display:flex;align-items:center;gap:10px}
+    .bmark{width:12px;height:12px;border-radius:50%;}
+    .btitle{font-weight:700}
+    .bmeta{font-size:11px;color:var(--muted);margin-top:2px}
+    .kpis{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px}
+    .kpi{background:rgba(0,0,0,.18);border:1px solid rgba(255,255,255,.08);border-radius:12px;padding:10px}
+    .kpi .n{font-size:18px;font-weight:800}
+    .kpi .l{font-size:11px;color:var(--muted)}
+    .side{
+      background:var(--card);border:1px solid var(--cardb);
+      border-radius:18px;box-shadow:var(--shadow);padding:14px 14px 12px;
+    }
+    .side h3{margin:4px 0 10px;font-size:13px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em}
+    .links{display:flex;flex-wrap:wrap;gap:8px}
+    .small{font-size:12px;color:var(--muted);line-height:1.35}
+    .events{margin-top:12px}
+    .row{display:flex;gap:10px;align-items:center;justify-content:space-between}
+    .tag{font-size:11px;padding:2px 8px;border-radius:999px;border:1px solid rgba(255,255,255,.14);color:var(--muted)}
+    table{width:100%;border-collapse:separate;border-spacing:0 8px}
+    td{font-size:12px;color:var(--muted);padding:8px 10px;background:rgba(0,0,0,.18);border:1px solid rgba(255,255,255,.08)}
+    tr td:first-child{border-top-left-radius:10px;border-bottom-left-radius:10px}
+    tr td:last-child{border-top-right-radius:10px;border-bottom-right-radius:10px}
+    .mono{font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,"Liberation Mono","Courier New",monospace}
   </style>
 </head>
 <body>
+  <header>
+    <div class="logo">
+      <div class="mark">AMQ</div>
+      <div>
+        <h1>AMQ Broker · Multicluster</h1>
+        <p>Live visualizer (inspired by amq-broker-demo)</p>
+      </div>
+    </div>
+    <div class="spacer"></div>
+    <span class="pill"><span style="width:9px;height:9px;border-radius:50%;background:var(--green);display:inline-block"></span>running</span>
+  </header>
+
   <div class="wrap">
-    <div class="card" style="margin-bottom:14px;">
-      <div class="banner" style="background:{bannerColor};">{bannerLabel} — Visualizer</div>
-      <div class="content" style="display:flex; gap:12px; flex-wrap:wrap;">
-        {#if amq1BrokerConsoleUrl}<a class="pill" href="{amq1BrokerConsoleUrl}" target="_blank" rel="noreferrer">AMQ1 console</a>{/if}
-        {#if amq2BrokerConsoleUrl}<a class="pill" href="{amq2BrokerConsoleUrl}" target="_blank" rel="noreferrer">AMQ2 console</a>{/if}
-        {#if amq3BrokerConsoleUrl}<a class="pill" href="{amq3BrokerConsoleUrl}" target="_blank" rel="noreferrer">AMQ3 console</a>{/if}
-        {#if amq1ConsumerUrl}<a class="pill" href="{amq1ConsumerUrl}" target="_blank" rel="noreferrer">AMQ1 consumer</a>{/if}
-        {#if amq2ConsumerUrl}<a class="pill" href="{amq2ConsumerUrl}" target="_blank" rel="noreferrer">AMQ2 consumer</a>{/if}
-        {#if amq3ConsumerUrl}<a class="pill" href="{amq3ConsumerUrl}" target="_blank" rel="noreferrer">AMQ3 consumer</a>{/if}
-        {#if amq1SimulatorUrl}<a class="pill" href="{amq1SimulatorUrl}" target="_blank" rel="noreferrer">AMQ1 Node-RED</a>{/if}
-        {#if amq2SimulatorUrl}<a class="pill" href="{amq2SimulatorUrl}" target="_blank" rel="noreferrer">AMQ2 Node-RED</a>{/if}
-        {#if amq3SimulatorUrl}<a class="pill" href="{amq3SimulatorUrl}" target="_blank" rel="noreferrer">AMQ3 Node-RED</a>{/if}
+    <div class="stagewrap">
+      <div class="stage" id="stage">
+        <svg class="links" viewBox="0 0 1000 560" preserveAspectRatio="none">
+          <!-- Local flows -->
+          <path id="p1" d="M130 120 C 210 120, 250 150, 300 170" stroke="rgba(56,189,248,.55)" stroke-width="3" fill="none" stroke-dasharray="10 8" class="flow"/>
+          <path id="p2" d="M500 120 C 580 120, 620 150, 670 170" stroke="rgba(56,189,248,.55)" stroke-width="3" fill="none" stroke-dasharray="10 8" class="flow"/>
+          <path id="p3" d="M870 120 C 790 120, 750 150, 700 170" stroke="rgba(56,189,248,.55)" stroke-width="3" fill="none" stroke-dasharray="10 8" class="flow"/>
+
+          <path id="c1" d="M300 300 C 250 330, 210 360, 130 370" stroke="rgba(61,220,132,.50)" stroke-width="3" fill="none" stroke-dasharray="10 8" class="flow"/>
+          <path id="c2" d="M670 300 C 620 330, 580 360, 500 370" stroke="rgba(61,220,132,.50)" stroke-width="3" fill="none" stroke-dasharray="10 8" class="flow"/>
+          <path id="c3" d="M700 300 C 750 330, 790 360, 870 370" stroke="rgba(61,220,132,.50)" stroke-width="3" fill="none" stroke-dasharray="10 8" class="flow"/>
+
+          <!-- Mirror mesh -->
+          <path d="M300 240 L 670 240" stroke="rgba(167,139,250,.35)" stroke-width="3" fill="none" stroke-dasharray="6 10" class="flow"/>
+          <path d="M300 240 L 700 240" stroke="rgba(167,139,250,.35)" stroke-width="3" fill="none" stroke-dasharray="6 10" class="flow"/>
+          <path d="M670 240 L 700 240" stroke="rgba(167,139,250,.35)" stroke-width="3" fill="none" stroke-dasharray="6 10" class="flow"/>
+        </svg>
+
+        <!-- Producers -->
+        <div class="node endpoint" style="left:130px;top:120px;">
+          <div class="ic">🧩</div>
+          <div class="lbl">Node-RED</div>
+          <div class="sub">{amq1Label}</div>
+        </div>
+        <div class="node endpoint" style="left:500px;top:120px;">
+          <div class="ic">🧩</div>
+          <div class="lbl">Node-RED</div>
+          <div class="sub">{amq2Label}</div>
+        </div>
+        <div class="node endpoint" style="left:870px;top:120px;">
+          <div class="ic">🧩</div>
+          <div class="lbl">Node-RED</div>
+          <div class="sub">{amq3Label}</div>
+        </div>
+
+        <!-- Brokers -->
+        <div class="node broker" style="left:300px;top:240px;">
+          <div class="btop"><div class="bmark" style="background:var(--amq1)"></div><div><div class="btitle">{amq1Label}</div><div class="bmeta mono">amq1 · amq-multicluster-amq</div></div></div>
+          <div class="kpis">
+            <div class="kpi"><div class="n mono" id="amq1-received">-</div><div class="l">received</div></div>
+            <div class="kpi"><div class="n mono" id="amq1-dup">-</div><div class="l">duplicates</div></div>
+            <div class="kpi"><div class="n mono" id="amq1-uptime">-</div><div class="l">uptime</div></div>
+            <div class="kpi"><div class="n mono" id="amq1-status">-</div><div class="l">status</div></div>
+          </div>
+        </div>
+
+        <div class="node broker" style="left:670px;top:240px;">
+          <div class="btop"><div class="bmark" style="background:var(--amq2)"></div><div><div class="btitle">{amq2Label}</div><div class="bmeta mono">amq2 · amq-multicluster-amq</div></div></div>
+          <div class="kpis">
+            <div class="kpi"><div class="n mono" id="amq2-received">-</div><div class="l">received</div></div>
+            <div class="kpi"><div class="n mono" id="amq2-dup">-</div><div class="l">duplicates</div></div>
+            <div class="kpi"><div class="n mono" id="amq2-uptime">-</div><div class="l">uptime</div></div>
+            <div class="kpi"><div class="n mono" id="amq2-status">-</div><div class="l">status</div></div>
+          </div>
+        </div>
+
+        <div class="node broker" style="left:700px;top:240px;">
+          <div class="btop"><div class="bmark" style="background:var(--amq3)"></div><div><div class="btitle">{amq3Label}</div><div class="bmeta mono">amq3 · amq-multicluster-amq</div></div></div>
+          <div class="kpis">
+            <div class="kpi"><div class="n mono" id="amq3-received">-</div><div class="l">received</div></div>
+            <div class="kpi"><div class="n mono" id="amq3-dup">-</div><div class="l">duplicates</div></div>
+            <div class="kpi"><div class="n mono" id="amq3-uptime">-</div><div class="l">uptime</div></div>
+            <div class="kpi"><div class="n mono" id="amq3-status">-</div><div class="l">status</div></div>
+          </div>
+        </div>
+
+        <!-- Consumers -->
+        <div class="node endpoint" style="left:130px;top:370px;">
+          <div class="ic">📥</div>
+          <div class="lbl">Consumer</div>
+          <div class="sub">{amq1Label}</div>
+        </div>
+        <div class="node endpoint" style="left:500px;top:370px;">
+          <div class="ic">📥</div>
+          <div class="lbl">Consumer</div>
+          <div class="sub">{amq2Label}</div>
+        </div>
+        <div class="node endpoint" style="left:870px;top:370px;">
+          <div class="ic">📥</div>
+          <div class="lbl">Consumer</div>
+          <div class="sub">{amq3Label}</div>
+        </div>
       </div>
     </div>
 
-    <h2 style="margin:0 0 10px 0;">AMQ Broker multicluster demo</h2>
-    <div style="margin:0 0 16px 0; color: var(--muted);">
-      Banners por cluster (para demo visual): <span class="pill">AMQ1</span> <span class="pill">AMQ2</span> <span class="pill">AMQ3</span>
-    </div>
+    <aside class="side">
+      <h3>Quick links</h3>
+      <div class="links">
+        {#if amq1BrokerConsoleUrl}<a class="pill" href="{amq1BrokerConsoleUrl}" target="_blank" rel="noreferrer">{amq1Label} console</a>{/if}
+        {#if amq2BrokerConsoleUrl}<a class="pill" href="{amq2BrokerConsoleUrl}" target="_blank" rel="noreferrer">{amq2Label} console</a>{/if}
+        {#if amq3BrokerConsoleUrl}<a class="pill" href="{amq3BrokerConsoleUrl}" target="_blank" rel="noreferrer">{amq3Label} console</a>{/if}
+        {#if amq1ConsumerUrl}<a class="pill" href="{amq1ConsumerUrl}" target="_blank" rel="noreferrer">{amq1Label} consumer</a>{/if}
+        {#if amq2ConsumerUrl}<a class="pill" href="{amq2ConsumerUrl}" target="_blank" rel="noreferrer">{amq2Label} consumer</a>{/if}
+        {#if amq3ConsumerUrl}<a class="pill" href="{amq3ConsumerUrl}" target="_blank" rel="noreferrer">{amq3Label} consumer</a>{/if}
+        {#if amq1SimulatorUrl}<a class="pill" href="{amq1SimulatorUrl}" target="_blank" rel="noreferrer">{amq1Label} Node-RED</a>{/if}
+        {#if amq2SimulatorUrl}<a class="pill" href="{amq2SimulatorUrl}" target="_blank" rel="noreferrer">{amq2Label} Node-RED</a>{/if}
+        {#if amq3SimulatorUrl}<a class="pill" href="{amq3SimulatorUrl}" target="_blank" rel="noreferrer">{amq3Label} Node-RED</a>{/if}
+      </div>
 
-    <div class="grid">
-      <div class="card">
-        <div class="banner" style="background:{amq1Color};">{amq1Label}</div>
-        <div class="content">
-          <div><b>Context</b>: amq1</div>
-          <div><b>Broker</b>: amq-amq1</div>
-          <div style="margin-top:10px;">
-            <div><b>Received</b>: <span class="metric" id="amq1-received">-</span></div>
-            <div><b>Duplicates</b>: <span class="metric" id="amq1-dup">-</span></div>
-            <div><b>Uptime</b>: <span class="metric" id="amq1-uptime">-</span></div>
-          </div>
+      <div class="events">
+        <div class="row">
+          <h3 style="margin:14px 0 6px">Latest events</h3>
+          <span class="tag">iot/events/v2</span>
         </div>
+        <div class="small">This panel shows the latest events seen by each consumer (via server-side proxy to avoid browser CORS).</div>
+        <table>
+          <tbody id="events-tbody"></tbody>
+        </table>
       </div>
-      <div class="card">
-        <div class="banner" style="background:{amq2Color};">{amq2Label}</div>
-        <div class="content">
-          <div><b>Context</b>: amq2</div>
-          <div><b>Broker</b>: amq-amq2</div>
-          <div style="margin-top:10px;">
-            <div><b>Received</b>: <span class="metric" id="amq2-received">-</span></div>
-            <div><b>Duplicates</b>: <span class="metric" id="amq2-dup">-</span></div>
-            <div><b>Uptime</b>: <span class="metric" id="amq2-uptime">-</span></div>
-          </div>
-        </div>
-      </div>
-      <div class="card">
-        <div class="banner" style="background:{amq3Color};">{amq3Label}</div>
-        <div class="content">
-          <div><b>Context</b>: amq3</div>
-          <div><b>Broker</b>: amq-amq3</div>
-          <div style="margin-top:10px;">
-            <div><b>Received</b>: <span class="metric" id="amq3-received">-</span></div>
-            <div><b>Duplicates</b>: <span class="metric" id="amq3-dup">-</span></div>
-            <div><b>Uptime</b>: <span class="metric" id="amq3-uptime">-</span></div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <div class="footer">
-      Esta UI se extenderá para mostrar métricas/Jolokia y eventos en tiempo real.
-    </div>
+    </aside>
   </div>
 
   <script>
-    const urls = {
-      amq1: "{amq1SnapshotUrl}",
-      amq2: "{amq2SnapshotUrl}",
-      amq3: "{amq3SnapshotUrl}",
-    };
+    const sites = ["amq1","amq2","amq3"];
 
-    const demoData = !urls.amq1 && !urls.amq2 && !urls.amq3;
-    let demoCounters = { amq1: 0, amq2: 0, amq3: 0 };
+    function setText(id, value) {
+      const el = document.getElementById(id);
+      if (!el) return;
+      el.textContent = value;
+    }
 
-    async function tick(site) {
-      if (demoData) {
-        demoCounters[site] += Math.floor(Math.random() * 10);
-        document.getElementById(site + "-received").textContent = demoCounters[site];
-        document.getElementById(site + "-dup").textContent = 0;
-        document.getElementById(site + "-uptime").textContent = "-";
-        return;
-      }
+    function fmtUptime(ms) {
+      if (typeof ms !== "number") return "-";
+      return Math.round(ms / 1000) + "s";
+    }
 
-      const url = urls[site];
-      if (!url) return;
+    async function tickSite(site) {
       try {
-        const res = await fetch(url, { cache: "no-store" });
-        if (!res.ok) throw new Error("HTTP " + res.status);
-        const data = await res.json();
-        document.getElementById(site + "-received").textContent = data.received ?? "-";
-        document.getElementById(site + "-dup").textContent = data.duplicates ?? "-";
+        const r = await fetch("/api/consumer/" + site + "/snapshot", { cache: "no-store" });
+        if (!r.ok) throw new Error("HTTP " + r.status);
+        const data = await r.json();
+        setText(site + "-received", data.received ?? "-");
+        setText(site + "-dup", data.duplicates ?? "-");
+        setText(site + "-status", "ONLINE");
+        return data;
       } catch (e) {
-        document.getElementById(site + "-received").textContent = "err";
-        document.getElementById(site + "-dup").textContent = "err";
-      }
-
-      try {
-        const res = await fetch("/api/jolokia/" + site + "/uptime", { cache: "no-store" });
-        if (!res.ok) throw new Error("HTTP " + res.status);
-        const data = await res.json();
-        const ms = data?.value?.Uptime;
-        document.getElementById(site + "-uptime").textContent = (typeof ms === "number") ? (Math.round(ms / 1000) + "s") : "-";
-      } catch (e) {
-        document.getElementById(site + "-uptime").textContent = "-";
+        setText(site + "-received", "err");
+        setText(site + "-dup", "err");
+        setText(site + "-status", "ERR");
+        return null;
       }
     }
 
+    async function tickUptime(site) {
+      try {
+        const r = await fetch("/api/jolokia/" + site + "/uptime", { cache: "no-store" });
+        if (!r.ok) throw new Error("HTTP " + r.status);
+        const data = await r.json();
+        setText(site + "-uptime", fmtUptime(data && data.value && data.value.Uptime));
+      } catch (e) {
+        setText(site + "-uptime", "-");
+      }
+    }
+
+    function renderEvents(map) {
+      const tb = document.getElementById("events-tbody");
+      if (!tb) return;
+      const rows = [];
+      for (const site of sites) {
+        const snap = map[site];
+        const last = snap && snap.last ? snap.last[0] : null;
+        if (!last || !last.body) continue;
+        let body = last.body;
+        if (body.length > 120) body = body.slice(0, 120) + "...";
+        rows.push("<tr>" +
+          "<td class=\"mono\">" + site + "</td>" +
+          "<td class=\"mono\">" + body.replaceAll("<","&lt;").replaceAll(">","&gt;") + "</td>" +
+        "</tr>");
+      }
+      tb.innerHTML = rows.join("");
+    }
+
     async function loop() {
-      await Promise.all([tick("amq1"), tick("amq2"), tick("amq3")]);
+      const snaps = {};
+      await Promise.all(sites.map(async (s) => { snaps[s] = await tickSite(s); }));
+      await Promise.all(sites.map((s) => tickUptime(s)));
+      renderEvents(snaps);
     }
 
     loop();
