@@ -15,9 +15,11 @@ data:
       log global
       mode tcp
       option tcplog
+      option log-health-checks
       timeout connect 5s
       timeout client  1m
       timeout server  1m
+      timeout check   2s
 
     frontend mqtts_in
       bind :8883
@@ -30,6 +32,13 @@ data:
       server amq1 amq-amq1-mqtts-lb.amq-multicluster-amq.svc:8883 check
       # Remote on-prem broker (AMQ2) reachable via Skupper listener in amq1
       server amq2 amq-amq2-mqtts.amq-multicluster-skupper.svc:8883 check
+
+    listen stats
+      bind :8404
+      mode http
+      stats enable
+      stats uri /stats
+      stats refresh 5s
 
 ---
 apiVersion: apps/v1
@@ -56,6 +65,8 @@ spec:
           ports:
             - containerPort: 8883
               name: mqtts
+            - containerPort: 8404
+              name: stats
           volumeMounts:
             - name: cfg
               mountPath: /usr/local/etc/haproxy/haproxy.cfg
@@ -80,6 +91,9 @@ spec:
     - name: mqtts
       port: 8883
       targetPort: mqtts
+    - name: stats
+      port: 8404
+      targetPort: stats
 
 ---
 apiVersion: route.openshift.io/v1
