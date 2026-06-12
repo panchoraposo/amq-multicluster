@@ -17,6 +17,7 @@ resources:
 
   - site.yaml
   - amq-connectors.yaml
+  - mqtt-connectors.yaml
   - amq-listeners.yaml
 
   # Filled by automation after AccessGrant is ready on amq1:

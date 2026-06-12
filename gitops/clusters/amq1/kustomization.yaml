@@ -6,6 +6,7 @@ resources:
   - namespace-amq.yaml
   - namespace-skupper.yaml
   - namespace-apps.yaml
+  - namespace-edge.yaml
 
   # Operators
   - amq-broker-operatorgroup.yaml
@@ -22,12 +23,16 @@ resources:
   - site.yaml
   - amq-connectors.yaml
   - amq-listeners.yaml
+  - mqtt-listeners.yaml
   - access-grant.yaml
 
   # Apps (build + run)
   - imagestreams.yaml
   - buildconfigs.yaml
   - apps.yaml
+
+  # Edge ingress (on-prem HAProxy → AMQ1/AMQ2)
+  - edge-haproxy.yaml
 
   # OpenShift console customization (banner + app menu links)
   - console-banner.yaml

@@ -1,0 +1,100 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: onprem-mqtt-haproxy
+  namespace: amq-multicluster-edge
+  annotations:
+    argocd.argoproj.io/sync-wave: "41"
+data:
+  haproxy.cfg: |
+    global
+      log stdout format raw local0
+      maxconn 2048
+
+    defaults
+      log global
+      mode tcp
+      option tcplog
+      timeout connect 5s
+      timeout client  1m
+      timeout server  1m
+
+    frontend mqtts_in
+      bind :8883
+      default_backend mqtts_back
+
+    backend mqtts_back
+      balance roundrobin
+      option tcp-check
+      # Local on-prem broker (AMQ1)
+      server amq1 amq-amq1-mqtts-lb.amq-multicluster-amq.svc:8883 check
+      # Remote on-prem broker (AMQ2) reachable via Skupper listener in amq1
+      server amq2 amq-amq2-mqtts.amq-multicluster-skupper.svc:8883 check
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: onprem-mqtt-haproxy
+  namespace: amq-multicluster-edge
+  annotations:
+    argocd.argoproj.io/sync-wave: "42"
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: onprem-mqtt-haproxy
+  template:
+    metadata:
+      labels:
+        app: onprem-mqtt-haproxy
+    spec:
+      containers:
+        - name: haproxy
+          image: quay.io/haproxytech/haproxy-alpine:2.9
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8883
+              name: mqtts
+          volumeMounts:
+            - name: cfg
+              mountPath: /usr/local/etc/haproxy/haproxy.cfg
+              subPath: haproxy.cfg
+      volumes:
+        - name: cfg
+          configMap:
+            name: onprem-mqtt-haproxy
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: onprem-mqtt-haproxy
+  namespace: amq-multicluster-edge
+  annotations:
+    argocd.argoproj.io/sync-wave: "42"
+spec:
+  selector:
+    app: onprem-mqtt-haproxy
+  ports:
+    - name: mqtts
+      port: 8883
+      targetPort: mqtts
+
+---
+apiVersion: route.openshift.io/v1
+kind: Route
+metadata:
+  name: onprem-mqtt
+  namespace: amq-multicluster-edge
+  annotations:
+    argocd.argoproj.io/sync-wave: "43"
+spec:
+  to:
+    kind: Service
+    name: onprem-mqtt-haproxy
+  port:
+    targetPort: mqtts
+  tls:
+    termination: passthrough
+
