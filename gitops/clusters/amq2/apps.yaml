@@ -27,7 +27,7 @@ spec:
             - name: DEMO_MQTT_PORT
               value: "8883"
             - name: DEMO_MQTT_TOPIC
-              value: iot.events.v3
+              value: iot/events/v4
             - name: DEMO_MQTT_INSECURE_TLS
               value: "true"
             - name: DEMO_MQTT_SITE
@@ -35,7 +35,7 @@ spec:
             - name: DEMO_BROKER_URL
               value: (tcp://amq-amq2-ss-0.amq-amq2-hdls-svc.amq-multicluster-amq.svc:61616,tcp://amq-amq2-ss-1.amq-amq2-hdls-svc.amq-multicluster-amq.svc:61616)?ha=true&reconnectAttempts=-1&retryInterval=1000&retryIntervalMultiplier=1.0
             - name: DEMO_BROKER_QUEUE
-              value: iot.events.v3
+              value: iot/events/v4
             - name: DEMO_BROKER_SITE
               value: amq2
 ---
@@ -106,7 +106,7 @@ spec:
             - name: MQTT_PASSWORD
               value: admin
             - name: MQTT_TOPIC
-              value: iot.events.v3
+              value: iot/events/v4
             - name: DEVICE_COUNT
               value: "25"
             - name: MQTT_INTERVAL_MS

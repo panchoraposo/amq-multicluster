@@ -9,9 +9,13 @@ import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 
 import javax.jms.BytesMessage;
+import javax.jms.Connection;
 import javax.jms.Message;
+import javax.jms.MessageConsumer;
+import javax.jms.Session;
 import javax.jms.TextMessage;
 
+import org.apache.activemq.artemis.jms.client.ActiveMQConnectionFactory;
 import org.eclipse.paho.client.mqttv3.IMqttDeliveryToken;
 import org.eclipse.paho.client.mqttv3.MqttCallbackExtended;
 import org.eclipse.paho.client.mqttv3.MqttClient;
@@ -71,34 +75,17 @@ public class EventConsumerMain implements QuarkusApplication {
 
   @Override
   public int run(String... args) throws Exception {
-    if (mqtt.host() != null && !mqtt.host().isBlank()) {
+    // Prefer core/JMS consumption for stable demo counters; MQTT mode is kept as an optional alternative.
+    if (cfg.url() != null && !cfg.url().isBlank()) {
+      System.out.println("Consumer starting JMS site=" + cfg.site() + " queue=" + cfg.queue() + " url=" + cfg.url());
+      startJms();
+    } else if (mqtt.host() != null && !mqtt.host().isBlank()) {
       System.out.println("Consumer starting MQTT site=" + mqtt.site() + " topic=" + mqtt.topic() + " host=" + mqtt.host() + ":" + mqtt.port());
       startMqtt();
-      Thread.currentThread().join();
-      return 0;
+    } else {
+      System.err.println("No demo.broker.url or demo.mqtt.host configured. Exiting.");
+      return 2;
     }
-
-    // Legacy JMS mode (kept as fallback)
-    String coreUrl = cfg.url();
-    System.out.println("Consumer starting JMS site=" + cfg.site() + " queue=" + cfg.queue() + " url=" + coreUrl);
-
-    vertx.executeBlocking(promise -> {
-      long backoffMs = 1000;
-      while (true) {
-        try {
-          // NOTE: JMS mode currently disabled for multicluster MQTT demos.
-          Thread.sleep(30000);
-        } catch (Exception e) {
-          System.err.println("Consume error (will reconnect): " + e.getMessage());
-          try {
-            Thread.sleep(backoffMs);
-          } catch (InterruptedException ignored) {
-            Thread.currentThread().interrupt();
-          }
-          backoffMs = Math.min(backoffMs * 2, 30000);
-        }
-      }
-    }, false);
 
     Thread.currentThread().join();
     return 0;
@@ -148,6 +135,38 @@ public class EventConsumerMain implements QuarkusApplication {
     });
 
     client.connect(opts);
+  }
+
+  private void startJms() {
+    vertx.executeBlocking(promise -> {
+      long backoffMs = 1000;
+      while (true) {
+        try (ActiveMQConnectionFactory cf = new ActiveMQConnectionFactory(cfg.url(), cfg.username(), cfg.password());
+             Connection connection = cf.createConnection()) {
+          connection.start();
+          try (Session session = connection.createSession(false, Session.AUTO_ACKNOWLEDGE)) {
+            javax.jms.Queue q = session.createQueue(cfg.queue());
+            try (MessageConsumer consumer = session.createConsumer(q)) {
+              System.out.println("JMS consuming queue=" + cfg.queue());
+              while (true) {
+                Message msg = consumer.receive(1000);
+                if (msg != null) {
+                  state.onMessage(msg);
+                }
+              }
+            }
+          }
+        } catch (Exception e) {
+          System.err.println("JMS consume error (will reconnect): " + e.getMessage());
+          try {
+            Thread.sleep(backoffMs);
+          } catch (InterruptedException ignored) {
+            Thread.currentThread().interrupt();
+          }
+          backoffMs = Math.min(backoffMs * 2, 30000);
+        }
+      }
+    }, false);
   }
 
   private static SSLSocketFactory trustAllSocketFactory() throws Exception {
