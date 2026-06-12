@@ -13,6 +13,7 @@ resources:
   - amq-tls-mqtt-secret.yaml
   - addresses-queues.yaml
   - broker.yaml
+  - mqtts-lb-service.yaml
 
   - site.yaml
   - amq-connectors.yaml

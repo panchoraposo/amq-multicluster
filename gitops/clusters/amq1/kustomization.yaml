@@ -16,6 +16,7 @@ resources:
   - amq-tls-mqtt-secret.yaml
   - addresses-queues.yaml
   - broker.yaml
+  - mqtts-lb-service.yaml
 
   # Service Interconnect (RHSI/Skupper v2)
   - site.yaml

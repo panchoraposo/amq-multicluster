@@ -51,6 +51,8 @@
     .stage{position:relative;width:100%;aspect-ratio:16/9;min-height:560px}
     svg.links{position:absolute;inset:0;width:100%;height:100%;z-index:1}
     .flow{animation:dashflow 1s linear infinite}
+    body.no-traffic .flow{animation:none; opacity:.28}
+    body.no-traffic .dot{display:none}
     @keyframes dashflow{to{stroke-dashoffset:-28}}
     .node{position:absolute;transform:translate(-50%,-50%);z-index:2}
     .dot{
@@ -394,11 +396,25 @@
       paths.forEach(spawnDot);
     }
 
+    let lastTotalReceived = 0;
+    let trafficUntil = 0;
+
+    function setTrafficActive(active) {
+      document.body.classList.toggle("no-traffic", !active);
+    }
+
     async function loop() {
       const snaps = {};
       await Promise.all(sites.map(async (s) => { snaps[s] = await tickSite(s); }));
       await Promise.all(sites.map((s) => tickUptime(s)));
       renderEvents(snaps);
+
+      const total = sites.reduce((acc, s) => acc + (snaps[s] && typeof snaps[s].received === "number" ? snaps[s].received : 0), 0);
+      if (total > lastTotalReceived) {
+        trafficUntil = Date.now() + 4000;
+      }
+      lastTotalReceived = Math.max(lastTotalReceived, total);
+      setTrafficActive(Date.now() < trafficUntil && total > 0);
     }
 
     loadUi();

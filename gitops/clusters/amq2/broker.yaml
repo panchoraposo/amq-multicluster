@@ -12,6 +12,8 @@ spec:
     persistenceEnabled: true
     requireLogin: false
     messageMigration: true
+    storage:
+      size: 10Gi
   adminUser: admin
   adminPassword: admin
   console:

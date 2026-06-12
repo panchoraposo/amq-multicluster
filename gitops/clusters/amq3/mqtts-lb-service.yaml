@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: amq-amq3-mqtts-lb
+  namespace: amq-multicluster-amq
+  annotations:
+    argocd.argoproj.io/sync-wave: "11"
+spec:
+  selector:
+    ActiveMQArtemis: amq-amq3
+  ports:
+    - name: mqtts
+      port: 8883
+      targetPort: 8883
+
