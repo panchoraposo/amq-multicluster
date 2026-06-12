@@ -106,7 +106,7 @@ spec:
             - name: MQTT_PASSWORD
               value: admin
             - name: MQTT_TOPIC
-              value: iot/events/v4
+              value: multicast/iot/events/v4
             - name: DEVICE_COUNT
               value: "25"
             - name: MQTT_INTERVAL_MS
