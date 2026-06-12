@@ -3,6 +3,8 @@ kind: Deployment
 metadata:
   name: event-consumer
   namespace: amq-multicluster-apps
+  annotations:
+    argocd.argoproj.io/sync-wave: "42"
 spec:
   replicas: 1
   selector:
@@ -32,6 +34,8 @@ kind: Service
 metadata:
   name: event-consumer
   namespace: amq-multicluster-apps
+  annotations:
+    argocd.argoproj.io/sync-wave: "42"
 spec:
   selector:
     app: event-consumer
@@ -45,6 +49,8 @@ kind: Route
 metadata:
   name: event-consumer
   namespace: amq-multicluster-apps
+  annotations:
+    argocd.argoproj.io/sync-wave: "42"
 spec:
   to:
     kind: Service
@@ -57,6 +63,8 @@ kind: Deployment
 metadata:
   name: device-simulator
   namespace: amq-multicluster-apps
+  annotations:
+    argocd.argoproj.io/sync-wave: "42"
 spec:
   replicas: 3
   selector:
@@ -94,6 +102,8 @@ kind: Deployment
 metadata:
   name: visualizer
   namespace: amq-multicluster-apps
+  annotations:
+    argocd.argoproj.io/sync-wave: "42"
 spec:
   replicas: 1
   selector:
@@ -161,6 +171,8 @@ kind: Service
 metadata:
   name: visualizer
   namespace: amq-multicluster-apps
+  annotations:
+    argocd.argoproj.io/sync-wave: "42"
 spec:
   selector:
     app: visualizer
@@ -174,6 +186,8 @@ kind: Route
 metadata:
   name: visualizer
   namespace: amq-multicluster-apps
+  annotations:
+    argocd.argoproj.io/sync-wave: "42"
 spec:
   to:
     kind: Service

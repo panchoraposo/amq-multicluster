@@ -3,6 +3,8 @@ kind: BuildConfig
 metadata:
   name: device-simulator
   namespace: amq-multicluster-apps
+  annotations:
+    argocd.argoproj.io/sync-wave: "41"
 spec:
   runPolicy: Serial
   source:
@@ -26,6 +28,8 @@ kind: BuildConfig
 metadata:
   name: event-consumer
   namespace: amq-multicluster-apps
+  annotations:
+    argocd.argoproj.io/sync-wave: "41"
 spec:
   runPolicy: Serial
   source:
@@ -49,6 +53,8 @@ kind: BuildConfig
 metadata:
   name: visualizer
   namespace: amq-multicluster-apps
+  annotations:
+    argocd.argoproj.io/sync-wave: "41"
 spec:
   runPolicy: Serial
   source:
