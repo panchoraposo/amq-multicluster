@@ -84,7 +84,7 @@
     "name": "amq mqtts (insecure demo)",
     "broker": "${MQTT_HOST}",
     "port": "${MQTT_PORT}",
-    "clientid": "nodered-${HOSTNAME}",
+    "clientid": "",
     "autoConnect": true,
     "usetls": true,
     "protocolVersion": "4",
