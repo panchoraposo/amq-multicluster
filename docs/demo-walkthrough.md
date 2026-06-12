@@ -1,58 +1,55 @@
-# Demo walkthrough (3 clusters OpenShift)
+# Demo walkthrough (3 OpenShift clusters)
 
-Guía de alto nivel para correr la demo en 3 clusters (contexts `oc`: `amq1`, `amq2`, `amq3`):
+High-level guide to run the demo on three clusters (your `oc` contexts must be `amq1`, `amq2`, `amq3`).
 
-- `amq1`: broker + ingest MQTT/TLS
-- `amq2`: broker + ingest MQTT/TLS
-- `amq3`: broker + ingest MQTT/TLS
+## What you should see
 
-La conectividad entre clusters se realiza con **Service Interconnect / Skupper** para exponer endpoints AMQP entre sitios.
+- **Topic mode (multicast)**:
+  - **On‑prem devices** publish to **HAProxy** (on `amq1`) and are load-balanced to **AMQ1 / AMQ2**
+  - **Public Cloud‑only devices** publish directly to **AMQ3**
+  - **AMQP mirroring** replicates across all brokers
+- **Queue mode (anycast)**:
+  - `queue-producer` sends events to an **anycast** queue (`queue.demo`)
+  - each site consumes point‑to‑point (no fan‑out)
 
-## Pasos (resumen)
-
-1. Instalar AMQ Broker Operator (7.14.x) en cada cluster.
-2. Desplegar el `ActiveMQArtemis` en cada cluster (MQTT/TLS + AMQP mirroring).
-3. Configurar Service Interconnect para que cada cluster pueda resolver/conectar los endpoints AMQP de los otros sitios.
-4. Levantar **HAProxy on‑prem** (en `amq1`) y exponer `mqtts://<host>:443` con passthrough TLS.
-5. Correr simuladores (Node‑RED) + consumidores y abrir el `visualizer`.
-
-## URLs rápidas
+## Quick URLs
 
 ```bash
 ./scripts/demo-urls.sh
 ```
 
-## Reset de contadores (para “demo clean”)
-
-El `event-consumer` expone un endpoint para reiniciar contadores y el buffer de “latest events”:
+## Reset counters (clean demo)
 
 ```bash
 ./scripts/demo-reset.sh
 ```
 
-## Validar flujo (3 sitios)
+## Verify live flow
+
+- Topic mode:
 
 ```bash
-./scripts/demo-verify-flow.sh 3
+./scripts/demo-verify-flow.sh 3 topic
 ```
 
-## Notas sobre topics/addresses
-
-- **MQTT topic** usado por el simulador: `iot/events/v4`
-- **Core address / queue** en Artemis: `iot.events.v4` (Artemis traduce `/` → `.`)
-
-Para que el visualizer muestre `Uptime` por sitio, configura los base URLs de Jolokia (uno por cluster):
-
-`demo.jolokia.amq1-base-url=http://<route-host>/console/jolokia`
-
-Ejemplo para obtener el `route-host`:
+- Queue mode:
 
 ```bash
-oc --context amq1 -n amq-multicluster get route amq-amq1-wconsj-0-svc-rte -o jsonpath='{.spec.host}{"\n"}'
+./scripts/demo-verify-flow.sh 3 queue
 ```
 
-Ver detalles en:
-- `manifests/openshift/README.md`
+## Topic tree notes
+
+- The **Node‑RED** simulator publishes a topic tree under `sensors/#`, for example:
+  - `sensors/onprem/factory/plant-a/line/line-1/device/device-24/temp/telemetry`
+  - `sensors/public-cloud/factory/plant-b/line/line-2/device/device-7/pressure/telemetry`
+
+## Network Observer (Skupper)
+
+Each cluster runs **RHSI Network Observer** (Skupper console) to visualize service network connectivity.
+Routes are created in the `amq-multicluster-skupper` namespace and are named like `networkobserver-network-observer`.
+
+See:
 - `manifests/service-interconnect/README.md`
-- Casos de prueba (HA + no duplicados): `docs/demo-test-cases.md`
+- Test cases: `docs/demo-test-cases.md`
 

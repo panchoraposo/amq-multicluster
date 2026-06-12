@@ -3,7 +3,9 @@ set -euo pipefail
 
 for CTX in amq1 amq2 amq3; do
   H="$(oc --context "$CTX" -n amq-multicluster-apps get route event-consumer -o jsonpath='{.spec.host}')"
-  echo "=== ${CTX} reset ==="
-  curl -sk -X POST "https://${H}/api/reset" | jq -r '"received="+(.received|tostring)+" dup="+(.duplicates|tostring)'
+  echo "=== ${CTX} reset (topic) ==="
+  curl -sk -X POST "https://${H}/api/reset?mode=topic" | jq -r '"received="+(.received|tostring)+" dup="+(.duplicates|tostring)'
+  echo "=== ${CTX} reset (queue) ==="
+  curl -sk -X POST "https://${H}/api/reset?mode=queue" | jq -r '"received="+(.received|tostring)+" dup="+(.duplicates|tostring)'
 done
 

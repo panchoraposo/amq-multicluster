@@ -1,55 +1,55 @@
-# Manifests OpenShift (AMQ Broker 7.14) — 3 sitios
+# OpenShift manifests (AMQ Broker 7.14) — 3 sites
 
-## Qué hay acá
+## What’s here
 
-Manifests para desplegar AMQ Broker en OpenShift (Operator + `ActiveMQArtemis`) en tres sitios lógicos (que corresponden a tus kubeconfig contexts):
+Manifests to deploy AMQ Broker on OpenShift (Operator + `ActiveMQArtemis`) in three logical sites (matching your kubeconfig contexts):
 
 - `amq1`
 - `amq2`
 - `amq3`
 
-Cada sitio:
+Each site:
 
-- expone **MQTT/TLS** para ingest local,
-- expone **AMQP** para mirroring inter-sitio,
-- expone **console/Jolokia** para observabilidad/visualizer.
+- exposes **MQTT/TLS** for local ingest
+- exposes **AMQP** for inter-site mirroring
+- exposes **console/Jolokia** for observability (and optional UI integrations)
 
-La sincronización global se implementa con **broker connections / AMQP mirroring** en malla (cada broker con mirrors hacia los otros 2).
+Global synchronization is implemented using **broker connections / AMQP mirroring** in a full mesh (each broker mirrors to the other two).
 
-## Nota: API version y `brokerProperties`
+## Note: API version and `brokerProperties`
 
-En AMQ Broker Operator 7.14, el CRD de `ActiveMQArtemis` está en `broker.amq.io/v1beta1`.  
-Los manifests de este repo usan esa API version para que `spec.brokerProperties` se aplique correctamente.
+With AMQ Broker Operator 7.14, the `ActiveMQArtemis` CRD is `broker.amq.io/v1beta1`.
+These manifests use that API version so `spec.brokerProperties` is applied correctly.
 
-Para que el mirroring se conecte a un broker remoto con `requireLogin: true`, se deben configurar `AMQPConnections.<name>.user` y `AMQPConnections.<name>.password` (ver docs).
+If a remote mirror endpoint uses `requireLogin: true`, configure `AMQPConnections.<name>.user` and `AMQPConnections.<name>.password` (see docs).
 
-## Cómo aplicar (por cluster)
+## How to apply (per cluster)
 
-En **cada** cluster (`azure`, `dc1`, `dc2`):
+On **each** cluster (`amq1`, `amq2`, `amq3`):
 
-1) Instala el Operator (una sola vez):
-- Aplica `00-operator/00-namespace.yaml`, `00-operator/10-operatorgroup.yaml`, `00-operator/20-subscription.yaml`
-- Espera a que el CSV quede `Succeeded` en `amq-multicluster`.
+1) Install the Operator (once):
+- Apply `00-operator/00-namespace.yaml`, `00-operator/10-operatorgroup.yaml`, `00-operator/20-subscription.yaml`
+- Wait for the CSV to become `Succeeded`
 
-2) Crea (o adapta) el secret TLS para MQTT:
-- Usa `30-tls-secret-example.yaml` como referencia y crea `amq-tls-mqtt`.
+2) Create (or adapt) the MQTT TLS secret:
+- Use `30-tls-secret-example.yaml` as a reference and create `amq-tls-mqtt`
 
-3) Aplica el broker del sitio:
-- En AMQ1: `10-broker-amq1.yaml`
-- En AMQ2: `10-broker-amq2.yaml`
-- En AMQ3: `10-broker-amq3.yaml`
+3) Apply the broker manifest for the site:
+- AMQ1: `10-broker-amq1.yaml`
+- AMQ2: `10-broker-amq2.yaml`
+- AMQ3: `10-broker-amq3.yaml`
 
-4) Crea la cola de demo (opcional pero recomendado):
+4) Create demo addresses/queues (recommended):
 - `20-addresses-queues.yaml`
 
-## Convención de endpoints para mirroring (Service Interconnect)
+## Mirroring endpoint convention (Service Interconnect)
 
-Los `brokerProperties` usan URIs como `tcp://amq-amq2-mirror:5672`. La idea es que **Service Interconnect** exponga el acceptor AMQP del broker remoto con ese **nombre de servicio** en cada cluster consumidor.
+The `brokerProperties` use URIs like `tcp://amq-amq2-mirror:5672`. The idea is that **Service Interconnect** exposes the remote broker AMQP acceptor using that **service name** in each consumer cluster.
 
-Esto se completa en `manifests/service-interconnect/README.md`.
+See `manifests/service-interconnect/README.md`.
 
-## Referencias
+## References
 
 - Broker connections / mirrors: `https://docs.redhat.com/en/documentation/red_hat_amq_broker/7.14/html/configuring_amq_broker/configuring-fault-tolerant-system-broker-connections_configuring`
-- `brokerProperties` en OpenShift: `https://docs.redhat.com/en/documentation/red_hat_amq_broker/7.14/html-single/deploying_amq_broker_on_openshift/index`
+- `brokerProperties` on OpenShift: `https://docs.redhat.com/en/documentation/red_hat_amq_broker/7.14/html-single/deploying_amq_broker_on_openshift/index`
 

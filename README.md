@@ -1,13 +1,15 @@
-# AMQ Broker multicluster demo (3 clusters)
+# AMQ Broker multi-cluster demo (3 clusters)
 
-Demostración de una arquitectura IoT/mensajería basada en **Red Hat AMQ Broker 7.14** (a futuro 8.x), desplegada en **3 clusters OpenShift** (`azure`, `dc1`, `dc2`) con:
+Demo architecture for IoT messaging using **Red Hat AMQ Broker 7.14** (future-proof for 8.x), deployed across **3 OpenShift clusters** (`amq1`, `amq2`, `amq3`):
 
-- **Ingest MQTT/TLS por sitio**: dispositivos publican en el broker de su sitio (algunos solo llegan a Azure, otros a DC1/DC2).
-- **Sincronización global**: lo que llega a cualquier sitio se replica hacia los otros dos mediante **broker connections / AMQP mirroring** (bidireccional en malla).
-- **Simuladores y apps** en **Quarkus 3.33** (privilegiando Red Hat Build of Quarkus) y un **visualizer UI** para “ver” el flujo.
-- **Conectividad multicluster** para la demo usando **Red Hat Service Interconnect (Skupper)** (y luego Submariner en la demo final).
+- **MQTT/TLS ingest on every site**
+- **Global replication** via **broker connections / AMQP mirroring** (bidirectional full mesh)
+- **Device simulation** using **Node‑RED**
+- **Visualizer UI** (inspired by `hodrigohamalho/amq-broker-demo`)
+- **Inter-cluster connectivity** using **Red Hat Service Interconnect (Skupper)**
+- **Network Observer** (Skupper console) to visualize the service network between clusters
 
-> Nota: la sincronización es **eventual (async)**. Si consumes activamente en más de un sitio sobre la misma cola, existe una ventana de **at-least-once** con potenciales duplicados; la demo lo documenta y ofrece mitigaciones (idempotencia/dedup).
+> Note: mirroring is **asynchronous** → **eventual consistency**. If you consume concurrently in more than one site on the same queue/address, there is an **at-least-once** window where duplicates can happen; the demo documents mitigations (idempotency/dedup).
 
 ## Estructura del repo
 
@@ -22,22 +24,24 @@ manifests/
   service-interconnect/
     README.md
 apps/
-  device-simulator/      # Quarkus (MQTT/TLS producer)
-  event-consumer/        # Quarkus (AMQP/JMS consumer + API para UI)
-  visualizer/            # UI + backend (modo demo-data)
+  device-simulator-nodered/ # Node-RED (MQTTS producer)
+  event-consumer/           # Quarkus consumer + snapshot API for the UI
+  queue-producer/           # Quarkus core producer for anycast queue demo
+  visualizer/               # UI + backend proxy
 ```
 
-## Documentación clave
+## Key documentation
 
 - Producto AMQ Broker 7.14: `https://docs.redhat.com/en/documentation/red_hat_amq_broker/7.14/`
 - Broker connections / mirroring (multisite): `https://docs.redhat.com/en/documentation/red_hat_amq_broker/7.14/html/configuring_amq_broker/configuring-fault-tolerant-system-broker-connections_configuring`
-- `brokerProperties` en OpenShift (para configurar mirrors y más): `https://docs.redhat.com/en/documentation/red_hat_amq_broker/7.14/html-single/deploying_amq_broker_on_openshift/index`
+- `brokerProperties` on OpenShift (mirrors and more): `https://docs.redhat.com/en/documentation/red_hat_amq_broker/7.14/html-single/deploying_amq_broker_on_openshift/index`
 - Service Interconnect (Skupper): `https://developers.redhat.com/learn/openshift/link-distributed-services-across-openshift-clusters-using-red-hat-service`
+- RHSI Network Observer installation: `https://docs.redhat.com/en/documentation/red_hat_service_interconnect/2.1/html/installation/installing-operator`
 
-## Arranque rápido (local)
+## Local quickstart
 
-Ver [`docs/local-quickstart.md`](docs/local-quickstart.md).
+See [`docs/local-quickstart.md`](docs/local-quickstart.md).
 
 ## Demo multicluster (OpenShift)
 
-Ver [`docs/demo-walkthrough.md`](docs/demo-walkthrough.md) y los manifests en [`manifests/`](manifests/).
+See [`docs/demo-walkthrough.md`](docs/demo-walkthrough.md) and manifests under [`manifests/`](manifests/).

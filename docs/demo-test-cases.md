@@ -1,67 +1,71 @@
-# Casos de prueba (HA + no duplicados)
+# Test cases (HA + no duplicates)
 
-Este documento reúne un par de casos de prueba “demo-friendly” para mostrar:
+These test cases are designed to be “demo-friendly” and show:
 
-- **Sincronización multicluster** (mirroring) funcionando.
-- **No duplicación** (cuando se consume desde un único sitio).
-- **HA** (recuperación ante caída/reinicio de broker en OpenShift con persistencia).
+- **Multi-cluster replication** (AMQP mirroring) working
+- **No duplication** (when consuming from a single place, and/or with idempotent consumer)
+- **High availability** (broker pod restart with persistence)
 
-> Requisitos: contexts `oc` configurados como `amq1`, `amq2`, `amq3`.
+> Prereqs: your `oc` contexts must be `amq1`, `amq2`, `amq3`.
 
-## Caso 0 — Preparación (URLs + reset)
+## Case 0 — Preparation (URLs + reset)
 
 ```bash
 ./scripts/demo-urls.sh
 ./scripts/demo-reset.sh
 ```
 
-## Caso 1 — Flujo IoT: on‑prem → HAProxy → (AMQ1/AMQ2) y Azure‑only → AMQ3
+## Case 1 — IoT topic flow: on‑prem → HAProxy → (AMQ1/AMQ2) and Public Cloud‑only → AMQ3
 
-### Objetivo
+### Goal
 
-- Dispositivos on‑prem publican a **HAProxy** (ingress TCP) y los mensajes llegan a **AMQ1** o **AMQ2**.
-- Otros dispositivos (Azure‑only) publican directo al broker en **AMQ3**.
-- El `visualizer` muestra el flujo en 3 sitios.
+- On‑prem devices publish to **HAProxy** (TCP ingress) and messages reach **AMQ1** or **AMQ2**
+- Public Cloud‑only devices publish directly to the broker in **AMQ3**
+- The `visualizer` shows flow and mirroring across 3 sites
 
-### Pasos
+### Steps
 
-1) Reset de contadores:
-
-```bash
-./scripts/demo-reset.sh
-```
-
-2) Verificar que el tráfico fluye (incremento de `received`):
-
-```bash
-./scripts/demo-verify-flow.sh 3
-```
-
-### Objetivo
-
-Demostrar que el demo puede ejecutarse con **contadores limpios** y que el consumo es **idempotente** (se contabilizan solo eventos únicos). El campo `dup` refleja los duplicados detectados y descartados por la app (si ocurren).
-
-### Pasos
-
-Reset + validación rápida:
+1) Reset counters:
 
 ```bash
 ./scripts/demo-reset.sh
-./scripts/demo-verify-flow.sh 3
 ```
 
-## Caso 2 — HA en OpenShift (broker cae y vuelve sin pérdida)
+2) Verify traffic is flowing (received increases):
 
-### Objetivo
+```bash
+./scripts/demo-verify-flow.sh 3 topic
+```
 
-Demostrar que ante caída de un broker Pod:
+## Case 2 — Queue (anycast) flow: point-to-point delivery
 
-- el Pod se re-crea,
-- re-atacha el PV,
-- los mensajes persistidos siguen disponibles,
-- sin duplicación en consumo.
+### Goal
 
-### Pasos
+Demonstrate **anycast** semantics using `queue.demo`:
+
+- the `queue-producer` sends continuously
+- each site consumes from the anycast queue
+- the UI “Queue (anycast)” button switches the visualizer to `mode=queue`
+
+### Steps
+
+```bash
+./scripts/demo-reset.sh
+./scripts/demo-verify-flow.sh 3 queue
+```
+
+## Case 3 — Broker HA on OpenShift (pod restarts, messages persist)
+
+### Goal
+
+Demonstrate that when a broker pod is deleted:
+
+- the pod is recreated
+- the PVC is reattached
+- persisted messages remain available
+- consumption remains stable
+
+### Steps
 
 ```bash
 ./scripts/demo-ha-failover.sh amq1 ha-demo 20

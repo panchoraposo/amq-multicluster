@@ -1,68 +1,68 @@
-# Service Interconnect (Skupper) — conectividad multicluster
+# Service Interconnect (Skupper) — multi-cluster connectivity
 
-Objetivo: habilitar conectividad **AMQP (TCP)** entre brokers desplegados en distintos clusters OpenShift sin Submariner/ACM durante el desarrollo de la demo.
+Goal: enable **AMQP (TCP)** connectivity between brokers deployed on different OpenShift clusters, without Submariner/ACM, during demo development.
 
-## Referencias
+## References
 
-- Tutorial Red Hat Developer: `https://developers.redhat.com/learn/openshift/link-distributed-services-across-openshift-clusters-using-red-hat-service`
+- Red Hat Developer tutorial: `https://developers.redhat.com/learn/openshift/link-distributed-services-across-openshift-clusters-using-red-hat-service`
 
-## Enfoque sugerido (práctico)
+## Suggested approach (practical)
 
-Este repo asume un namespace común `amq-multicluster` en los 3 clusters, y un **site** de Service Interconnect por cluster (mismo namespace).
+This repo assumes a shared namespace (project) `amq-multicluster` on all clusters, and a **Service Interconnect site** per cluster (same namespace).
 
-La meta es que en cada cluster existan **DNS locales** con estos nombres:
+The goal is that, in every cluster, there are **local DNS/service names** like:
 
 - `amq-amq1-mirror:5672`
 - `amq-amq2-mirror:5672`
 - `amq-amq3-mirror:5672`
 
-Eso es exactamente lo que usan los `brokerProperties` en los manifests de `manifests/openshift/10-broker-*.yaml`.
+Those are the endpoints referenced by the broker `brokerProperties` in `manifests/openshift/10-broker-*.yaml`.
 
-## Pasos (Skupper CLI v2)
+## Steps (Skupper CLI v2)
 
-> Nota: en clusters donde RHSI no está instalado, Skupper OSS requiere CRDs. Si `skupper site create` falla indicando CRDs faltantes, instala primero:
+> Note: if RHSI is not installed, the upstream Skupper CLI requires CRDs. If `skupper site create` fails due to missing CRDs, install them first:
 >
 > `oc apply -f https://skupper.io/v2/install.yaml`
 
-### 1) Preparación (en cada cluster)
+### 1) Preparation (each cluster)
 
-- Loguearte con `oc` al cluster correspondiente.
-- Crear/seleccionar el proyecto:
+- Log in with `oc` to the target cluster.
+- Create/select the project:
 
 ```bash
 oc new-project amq-multicluster || oc project amq-multicluster
 ```
 
-### 2) Inicializar un site por cluster
+### 2) Create a site per cluster
 
-En cada cluster:
+On each cluster:
 
 ```bash
 skupper -c <amq1|amq2|amq3> -n amq-multicluster site create <amq1|amq2|amq3> --enable-link-access
 ```
 
-### 3) Conectar los sites (malla o estrella)
+### 3) Connect the sites (mesh or star)
 
-Para simplicidad, una estrella con `amq1` como hub suele alcanzar (la red enruta igual entre sites).
+For simplicity, a star with `amq1` as hub is often enough (the network still routes between sites).
 
-Ejemplo (estrella):
+Example (star):
 
-En **amq1**:
+On **amq1**:
 
 ```bash
 skupper -c amq1 -n amq-multicluster token issue amq1.token.yaml --redemptions-allowed 2
 ```
 
-En **amq2** y **amq3**:
+On **amq2** and **amq3**:
 
 ```bash
 skupper -c amq2 -n amq-multicluster token redeem amq1.token.yaml
 skupper -c amq3 -n amq-multicluster token redeem amq1.token.yaml
 ```
 
-### 4) Publicar el AMQP de cada sitio como “mirror endpoint”
+### 4) Publish each site AMQP as a “mirror endpoint”
 
-Cada `ActiveMQArtemis` define un acceptor `amqp` (5672) y el Operator crea un `Service` por Pod, por ejemplo:
+Each `ActiveMQArtemis` defines an `amqp` acceptor (5672) and the Operator creates a Service per broker pod, for example:
 
 ```bash
 amq-amq1-amqp-0-svc
@@ -70,12 +70,12 @@ amq-amq2-amqp-0-svc
 amq-amq3-amqp-0-svc
 ```
 
-En Skupper v2, esto se modela con:
+In Skupper v2, model this with:
 
-- 1 **connector** en el sitio *remoto* (apunta al Service real del broker).
-- 1 **listener** en el sitio *local* (crea el DNS/Service local con el nombre `amq-<sitio>-mirror`).
+- 1 **connector** in the *remote* site (points to the real broker Service)
+- 1 **listener** in the *local* site (creates the local DNS/service name `amq-<site>-mirror`)
 
-#### 4.1 Crear connectors (uno por sitio, en su propio cluster)
+#### 4.1 Create connectors (one per site, in its own cluster)
 
 ```bash
 skupper -c amq1 -n amq-multicluster connector create amq-amq1-mirror 5672 --workload service/amq-amq1-amqp-0-svc --routing-key amq-amq1-mirror
@@ -83,39 +83,35 @@ skupper -c amq2 -n amq-multicluster connector create amq-amq2-mirror 5672 --work
 skupper -c amq3 -n amq-multicluster connector create amq-amq3-mirror 5672 --workload service/amq-amq3-amqp-0-svc --routing-key amq-amq3-mirror
 ```
 
-#### 4.2 Crear listeners (dos por sitio, para los otros 2 brokers)
+#### 4.2 Create listeners (two per site, for the other two brokers)
 
-En **amq1**:
+On **amq1**:
 
 ```bash
 skupper -c amq1 -n amq-multicluster listener create amq-amq2-mirror 5672 --routing-key amq-amq2-mirror
 skupper -c amq1 -n amq-multicluster listener create amq-amq3-mirror 5672 --routing-key amq-amq3-mirror
 ```
 
-En **amq2**:
+On **amq2**:
 
 ```bash
 skupper -c amq2 -n amq-multicluster listener create amq-amq1-mirror 5672 --routing-key amq-amq1-mirror
 skupper -c amq2 -n amq-multicluster listener create amq-amq3-mirror 5672 --routing-key amq-amq3-mirror
 ```
 
-En **amq3**:
+On **amq3**:
 
 ```bash
 skupper -c amq3 -n amq-multicluster listener create amq-amq1-mirror 5672 --routing-key amq-amq1-mirror
 skupper -c amq3 -n amq-multicluster listener create amq-amq2-mirror 5672 --routing-key amq-amq2-mirror
 ```
 
-Resultado esperado: en **cada** cluster, `oc get svc` debe listar los Services `amq-amq<1|2|3>-mirror` (los “local endpoints” que usa el mirroring).
+Expected result: on **each** cluster, `oc get svc` lists `amq-amq<1|2|3>-mirror` Services (the “local endpoints” used by mirroring).
 
-### 5) Validar reachability desde cada broker
+## Important notes
 
-Una validación rápida (desde un pod cualquiera en el namespace) es resolver DNS y conectar a `:5672`.
+- **Security**: RHSI/Skupper already encrypts cross-site traffic (mTLS). For that reason, in this demo the AMQP acceptor for mirroring can stay with `sslEnabled: false`.
+- **MQTT**: MQTT/TLS is exposed by the broker (acceptor `mqtts` with `expose: true`). For real IoT, consider a LoadBalancer/NLB or TCP Ingress depending on your platform; OpenShift Routes are not ideal for non-HTTP TCP in general.
 
-## Notas importantes
-
-- **Seguridad**: RHSI/Skupper ya cifra el tráfico (mTLS) entre sites. Por eso, en los manifests el acceptor AMQP para mirroring está como `sslEnabled: false` por defecto.
-- **MQTT**: MQTT/TLS se expone por el broker (acceptor `mqtts` con `expose: true`). Para IoT real, considera un `LoadBalancer`/NLB o un Ingress TCP según tu plataforma; Route puede no ser ideal para TCP no-HTTP.
-
-> Si tu instalación RHSI no usa `skupper` CLI, ajustamos este README a los CRDs reales del Operator (pero el contrato se mantiene: terminar con `amq-<site>-mirror:5672` disponible en todos los sites).
+> If your environment does not use the `skupper` CLI, this README can be adapted to the Operator CRDs. The contract remains the same: each site must have `amq-<site>-mirror:5672` available.
 

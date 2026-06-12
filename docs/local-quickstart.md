@@ -1,31 +1,31 @@
-# Quickstart local (Podman)
+# Local quickstart (Podman)
 
-Este quickstart permite correr la demo **sin OpenShift**, usando contenedores locales con Podman.
+This quickstart runs the demo **without OpenShift**, using local containers with Podman.
 
-## Requisitos
+## Requirements
 
 - Podman
-- Java 21+ (para Quarkus 3.33)
+- Java 21+ (Quarkus 3.33)
 - Maven 3.9+
 
-## Flujo local recomendado
+## Recommended local flow
 
-- Levantar 3 brokers locales (simulan `amq1`, `amq2`, `amq3`) con listeners:
-  - MQTT (dev): `1883` (sin TLS) o `8883` (TLS si habilitas secrets/certs)
+- Start 3 local brokers (simulate `amq1`, `amq2`, `amq3`) exposing:
+  - MQTT (dev): `1883` (no TLS) or `8883` (TLS if you provide certs)
   - AMQP: `5672`
   - Console/Jolokia: `8161`
-- Correr el simulador de dispositivos apuntando a cada sitio por MQTT.
-- Correr consumidores (opcional) y el visualizer.
+- Run the device simulator pointing to each site via MQTT.
+- Run the consumers (optional) and the visualizer.
 
-## Visualizer (sin clusters)
+## Visualizer (no clusters)
 
-El visualizer puede correr en modo sintético (sin consumers):
+Run the visualizer in synthetic mode (no consumers required):
 
 ```bash
 mvn -pl apps/visualizer quarkus:dev
 ```
 
-Abrir `http://localhost:8080`.
+Open `http://localhost:8080`.
 
-> La configuración exacta de compose/podman para levantar 3 brokers locales se completará en un siguiente paso; por ahora el foco es la demo OpenShift multicluster.
+> The exact compose/podman setup for three local brokers will be added later; the current focus is the multi-cluster OpenShift demo.
 

@@ -1,35 +1,35 @@
-# Arquitectura: AMQ Broker multicluster (3 sitios)
+# Architecture: AMQ Broker multi-cluster (3 sites)
 
-## Objetivo funcional
+## Functional goals
 
-- **IoT ingest por sitio** usando **MQTT sobre TLS** hacia el broker local.
-- **Sincronización global**: los eventos publicados en cualquier sitio deben “aparecer” en los otros dos.
-- **Operación demo**: sin ACM/Submariner al inicio; usar **Red Hat Service Interconnect (Skupper)** como conectividad entre clusters.
+- **IoT ingest per site** using **MQTT over TLS** to the local broker.
+- **Global replication**: events ingested in any site should converge to the other sites.
+- **Demo connectivity**: use **Red Hat Service Interconnect (Skupper)** for inter-cluster connectivity (no ACM/Submariner required for the demo).
 
-## Replicación / sincronización (AMQ Broker)
+## Replication / synchronization (AMQ Broker)
 
-La demo usa **broker connections** con **AMQP mirroring**. En AMQ Broker 7.14 se configura típicamente vía `spec.brokerProperties` del `ActiveMQArtemis` en OpenShift.
+This demo uses **broker connections** with **AMQP mirroring**. On OpenShift, the configuration is typically expressed via `spec.brokerProperties` on the `ActiveMQArtemis` CR.
 
-- Doc producto: `https://docs.redhat.com/en/documentation/red_hat_amq_broker/7.14/html/configuring_amq_broker/configuring-fault-tolerant-system-broker-connections_configuring`
-- Doc OpenShift `brokerProperties`: `https://docs.redhat.com/en/documentation/red_hat_amq_broker/7.14/html-single/deploying_amq_broker_on_openshift/index`
+- AMQ Broker documentation: `https://docs.redhat.com/en/documentation/red_hat_amq_broker/7.14/html/configuring_amq_broker/configuring-fault-tolerant-system-broker-connections_configuring`
+- OpenShift `brokerProperties`: `https://docs.redhat.com/en/documentation/red_hat_amq_broker/7.14/html-single/deploying_amq_broker_on_openshift/index`
 
-### Por qué malla (full mesh) para 3 sitios
+### Why full mesh for 3 sites
 
-En mirroring es común que los eventos recibidos por mirror **no se re-mirroreen** (loop prevention). Para lograr “global sync” con 3 sitios, la estrategia más simple y explícita es:
+With mirroring, events received via mirror are typically **not mirrored again** (loop prevention). To achieve “global sync” across 3 sites, the simplest topology is:
 
-- Cada sitio crea **dos** `AMQPConnections.*` (mirrors) hacia los otros dos.
+- Each site creates **two** mirror connections (`AMQPConnections.*`) to the other two sites.
 
-### Semántica a entender (y que la demo mostrará)
+### Semantics (what the demo highlights)
 
-- Mirroring es **asíncrono** → consistencia **eventual**.
-- Si hay consumidores activos en **más de un sitio** sobre la misma cola, puede existir una ventana de **at-least-once** (duplicados). Mitigaciones:
-  - consumidores idempotentes + `message-id` estable,
-  - deduplicación en app,
-  - evitar “competencia global” y particionar por sitio cuando aplique.
+- Mirroring is **asynchronous** → **eventual consistency**
+- If consumers are active in **more than one site** on the same queue/address, there is an **at-least-once** window (duplicates can happen). Mitigations:
+  - idempotent consumers with stable `message-id` / `eventId`
+  - application-level deduplication
+  - partitioning workloads per site when appropriate
 
-## Conectividad multicluster
+## Multi-cluster connectivity
 
-La demo propone **Red Hat Service Interconnect (Skupper)** para exponer el endpoint AMQP entre sitios sin requerir Submariner.
+The demo uses **Red Hat Service Interconnect (Skupper)** to connect sites and expose cross-cluster endpoints without requiring Submariner.
 
-- Referencia: `https://developers.redhat.com/learn/openshift/link-distributed-services-across-openshift-clusters-using-red-hat-service`
+- Reference: `https://developers.redhat.com/learn/openshift/link-distributed-services-across-openshift-clusters-using-red-hat-service`
 
