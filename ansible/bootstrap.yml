@@ -1,0 +1,41 @@
+- name: Bootstrap OpenShift GitOps + Argo Applications
+  hosts: all
+  gather_facts: false
+  vars:
+    project_root: "{{ playbook_dir | dirname }}"
+  tasks:
+    - name: Install OpenShift GitOps operator
+      ansible.builtin.command: >
+        oc --context {{ oc_context }} apply -f {{ project_root }}/ansible/files/openshift-gitops-operator.yaml
+      changed_when: true
+
+    - name: Wait for GitOps operator CSV to be Succeeded
+      ansible.builtin.command: >
+        oc --context {{ oc_context }} -n openshift-gitops-operator
+        wait --for=jsonpath='{.status.phase}'=Succeeded
+        csv -l operators.coreos.com/openshift-gitops-operator.openshift-gitops-operator
+        --timeout=600s
+      changed_when: false
+
+    - name: Wait for openshift-gitops namespace to exist
+      ansible.builtin.command: >
+        oc --context {{ oc_context }} get ns openshift-gitops
+      register: ns_check
+      retries: 60
+      delay: 5
+      until: ns_check.rc == 0
+      changed_when: false
+
+    - name: Wait for openshift-gitops-server deployment to be Available
+      ansible.builtin.command: >
+        oc --context {{ oc_context }} -n openshift-gitops
+        wait --for=condition=Available
+        deploy -l app.kubernetes.io/name=openshift-gitops-server
+        --timeout=600s
+      changed_when: false
+
+    - name: Apply bootstrap Argo CD Application for this cluster
+      ansible.builtin.command: >
+        oc --context {{ oc_context }} apply -f {{ project_root }}/gitops/bootstrap/{{ oc_context }}.yaml
+      changed_when: true
+

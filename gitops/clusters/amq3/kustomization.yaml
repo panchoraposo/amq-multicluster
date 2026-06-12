@@ -1,0 +1,21 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+resources:
+  - ../../../manifests/openshift/00-operator
+  - ../../base/operators/rhsi-subscription.yaml
+  - ../../base/amq/amq-tls-mqtt-secret.yaml
+  - ../../../manifests/openshift/20-addresses-queues.yaml
+  - ../../../manifests/openshift/10-broker-amq3.yaml
+
+  - ../../base/apps/imagestreams.yaml
+  - ../../base/apps/buildconfigs.yaml
+  - apps.yaml
+
+  - site.yaml
+  - amq-connectors.yaml
+  - amq-listeners.yaml
+
+  # Filled by automation after AccessGrant is ready on amq1:
+  # - access-token-to-amq1.yaml
+

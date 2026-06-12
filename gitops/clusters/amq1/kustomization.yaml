@@ -1,0 +1,28 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+resources:
+  # AMQ Broker Operator (namespace-scoped)
+  - ../../../manifests/openshift/00-operator
+
+  # RHSI (Skupper) operator subscription (cluster-scoped operator)
+  - ../../base/operators/rhsi-subscription.yaml
+
+  # Namespace runtime config
+  - ../../base/amq/amq-tls-mqtt-secret.yaml
+  - ../../../manifests/openshift/20-addresses-queues.yaml
+
+  # Broker for this cluster
+  - ../../../manifests/openshift/10-broker-amq1.yaml
+
+  # Apps (builds + deployments)
+  - ../../base/apps/imagestreams.yaml
+  - ../../base/apps/buildconfigs.yaml
+  - apps.yaml
+
+  # Service Interconnect (Site + exposure)
+  - site.yaml
+  - amq-connectors.yaml
+  - amq-listeners.yaml
+  - access-grant.yaml
+

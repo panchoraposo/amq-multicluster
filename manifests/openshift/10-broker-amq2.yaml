@@ -1,0 +1,47 @@
+apiVersion: broker.amq.io/v1beta1
+kind: ActiveMQArtemis
+metadata:
+  name: amq-amq2
+  namespace: amq-multicluster
+spec:
+  deploymentPlan:
+    size: 2
+    clustered: true
+    persistenceEnabled: true
+    requireLogin: true
+    messageMigration: true
+  adminUser: admin
+  adminPassword: admin
+  console:
+    expose: true
+  acceptors:
+    - name: mqtts
+      protocols: mqtt
+      port: 8883
+      sslEnabled: true
+      sslSecret: amq-tls-mqtt
+      expose: true
+      verifyHost: false
+    - name: amqp
+      protocols: amqp
+      port: 5672
+      sslEnabled: false
+      expose: false
+  brokerProperties:
+    - "AMQPConnections.toAmq1.uri=tcp://amq-amq1-mirror:5672"
+    - "AMQPConnections.toAmq1.user=admin"
+    - "AMQPConnections.toAmq1.password=admin"
+    - "AMQPConnections.toAmq1.retryInterval=5000"
+    - "AMQPConnections.toAmq1.connectionElements.mirror.type=MIRROR"
+    - "AMQPConnections.toAmq1.connectionElements.mirror.messageAcknowledgements=true"
+    - "AMQPConnections.toAmq1.connectionElements.mirror.queueCreation=true"
+    - "AMQPConnections.toAmq1.connectionElements.mirror.queueRemoval=true"
+    - "AMQPConnections.toAmq3.uri=tcp://amq-amq3-mirror:5672"
+    - "AMQPConnections.toAmq3.user=admin"
+    - "AMQPConnections.toAmq3.password=admin"
+    - "AMQPConnections.toAmq3.retryInterval=5000"
+    - "AMQPConnections.toAmq3.connectionElements.mirror.type=MIRROR"
+    - "AMQPConnections.toAmq3.connectionElements.mirror.messageAcknowledgements=true"
+    - "AMQPConnections.toAmq3.connectionElements.mirror.queueCreation=true"
+    - "AMQPConnections.toAmq3.connectionElements.mirror.queueRemoval=true"
+

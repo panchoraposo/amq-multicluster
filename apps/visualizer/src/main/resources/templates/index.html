@@ -1,0 +1,124 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>AMQ multicluster visualizer</title>
+  <style>
+    :root { --bg: #0b1020; --panel: #111a33; --text: #e7ecff; --muted: #a8b3e6; }
+    body { margin: 0; font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial; background: var(--bg); color: var(--text); }
+    .wrap { max-width: 1200px; margin: 0 auto; padding: 20px; }
+    .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+    .card { background: var(--panel); border: 1px solid rgba(255,255,255,.08); border-radius: 14px; overflow: hidden; }
+    .banner { padding: 14px 16px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; }
+    .content { padding: 14px 16px; color: var(--muted); }
+    .metric { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; color: var(--text); }
+    .pill { display:inline-block; padding: 4px 10px; border-radius: 999px; border: 1px solid rgba(255,255,255,.12); color: var(--text); font-size: 12px; }
+    .footer { margin-top: 16px; color: var(--muted); font-size: 12px; }
+    @media (max-width: 980px) { .grid { grid-template-columns: 1fr; } }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <h2 style="margin:0 0 10px 0;">AMQ Broker multicluster demo</h2>
+    <div style="margin:0 0 16px 0; color: var(--muted);">
+      Banners por cluster (para demo visual): <span class="pill">AMQ1</span> <span class="pill">AMQ2</span> <span class="pill">AMQ3</span>
+    </div>
+
+    <div class="grid">
+      <div class="card">
+        <div class="banner" style="background:{amq1Color};">{amq1Label}</div>
+        <div class="content">
+          <div><b>Context</b>: amq1</div>
+          <div><b>Broker</b>: amq-amq1</div>
+          <div style="margin-top:10px;">
+            <div><b>Received</b>: <span class="metric" id="amq1-received">-</span></div>
+            <div><b>Duplicates</b>: <span class="metric" id="amq1-dup">-</span></div>
+            <div><b>Uptime</b>: <span class="metric" id="amq1-uptime">-</span></div>
+          </div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="banner" style="background:{amq2Color};">{amq2Label}</div>
+        <div class="content">
+          <div><b>Context</b>: amq2</div>
+          <div><b>Broker</b>: amq-amq2</div>
+          <div style="margin-top:10px;">
+            <div><b>Received</b>: <span class="metric" id="amq2-received">-</span></div>
+            <div><b>Duplicates</b>: <span class="metric" id="amq2-dup">-</span></div>
+            <div><b>Uptime</b>: <span class="metric" id="amq2-uptime">-</span></div>
+          </div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="banner" style="background:{amq3Color};">{amq3Label}</div>
+        <div class="content">
+          <div><b>Context</b>: amq3</div>
+          <div><b>Broker</b>: amq-amq3</div>
+          <div style="margin-top:10px;">
+            <div><b>Received</b>: <span class="metric" id="amq3-received">-</span></div>
+            <div><b>Duplicates</b>: <span class="metric" id="amq3-dup">-</span></div>
+            <div><b>Uptime</b>: <span class="metric" id="amq3-uptime">-</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="footer">
+      Esta UI se extenderá para mostrar métricas/Jolokia y eventos en tiempo real.
+    </div>
+  </div>
+
+  <script>
+    const urls = {
+      amq1: "{amq1SnapshotUrl}",
+      amq2: "{amq2SnapshotUrl}",
+      amq3: "{amq3SnapshotUrl}",
+    };
+
+    const demoData = !urls.amq1 && !urls.amq2 && !urls.amq3;
+    let demoCounters = { amq1: 0, amq2: 0, amq3: 0 };
+
+    async function tick(site) {
+      if (demoData) {
+        demoCounters[site] += Math.floor(Math.random() * 10);
+        document.getElementById(`${site}-received`).textContent = demoCounters[site];
+        document.getElementById(`${site}-dup`).textContent = 0;
+        document.getElementById(`${site}-uptime`).textContent = "-";
+        return;
+      }
+
+      const url = urls[site];
+      if (!url) return;
+      try {
+        const res = await fetch(url, { cache: "no-store" });
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const data = await res.json();
+        document.getElementById(`${site}-received`).textContent = data.received ?? "-";
+        document.getElementById(`${site}-dup`).textContent = data.duplicates ?? "-";
+      } catch (e) {
+        document.getElementById(`${site}-received`).textContent = "err";
+        document.getElementById(`${site}-dup`).textContent = "err";
+      }
+
+      try {
+        const res = await fetch(`/api/jolokia/${site}/uptime`, { cache: "no-store" });
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const data = await res.json();
+        const ms = data?.value?.Uptime;
+        document.getElementById(`${site}-uptime`).textContent = (typeof ms === "number") ? `${Math.round(ms/1000)}s` : "-";
+      } catch (e) {
+        document.getElementById(`${site}-uptime`).textContent = "-";
+      }
+    }
+
+    async function loop() {
+      await Promise.all([tick("amq1"), tick("amq2"), tick("amq3")]);
+    }
+
+    loop();
+    setInterval(loop, 1500);
+  </script>
+</body>
+</html>
+

@@ -1,0 +1,20 @@
+apiVersion: skupper.io/v2alpha1
+kind: Listener
+metadata:
+  name: amq-amq1-mirror
+  namespace: amq-multicluster
+spec:
+  routingKey: amq-amq1-mirror
+  host: amq-amq1-mirror
+  port: 5672
+---
+apiVersion: skupper.io/v2alpha1
+kind: Listener
+metadata:
+  name: amq-amq2-mirror
+  namespace: amq-multicluster
+spec:
+  routingKey: amq-amq2-mirror
+  host: amq-amq2-mirror
+  port: 5672
+

@@ -1,0 +1,23 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: amq-multicluster-amq1
+  namespace: openshift-gitops
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/panchoraposo/amq-multicluster.git
+    targetRevision: main
+    path: gitops/clusters/amq1
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: amq-multicluster
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+      - ApplyOutOfSyncOnly=true
+      - ServerSideApply=true
+

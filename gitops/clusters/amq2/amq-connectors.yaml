@@ -1,0 +1,10 @@
+apiVersion: skupper.io/v2alpha1
+kind: Connector
+metadata:
+  name: amq-amq2-mirror
+  namespace: amq-multicluster
+spec:
+  routingKey: amq-amq2-mirror
+  selector: ActiveMQArtemis=amq-amq2
+  port: 5672
+
