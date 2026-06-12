@@ -17,6 +17,7 @@ import javax.jms.Session;
 import javax.jms.TextMessage;
 
 import org.apache.activemq.artemis.jms.client.ActiveMQJMSConnectionFactory;
+import org.apache.activemq.artemis.jms.client.ActiveMQTopic;
 
 import java.time.Instant;
 import java.util.ArrayDeque;
@@ -64,10 +65,12 @@ public class EventConsumerMain implements QuarkusApplication {
         try {
           ConnectionFactory cf = new ActiveMQJMSConnectionFactory(coreUrl, cfg.username(), cfg.password());
           conn = cf.createConnection();
-          conn.setClientID("event-consumer-" + cfg.site());
+          String host = System.getenv().getOrDefault("HOSTNAME", "pod");
+          conn.setClientID("event-consumer-" + cfg.site() + "-" + host);
           conn.start();
           session = conn.createSession(false, Session.AUTO_ACKNOWLEDGE);
-          consumer = session.createDurableSubscriber(session.createTopic(cfg.queue()), "sub-" + cfg.site());
+          // Use core address/topic name (no jms.topic.* prefix) so it matches MQTT publishes.
+          consumer = session.createDurableSubscriber(new ActiveMQTopic(cfg.queue()), "sub-" + cfg.site());
 
           System.out.println("Consumer connected site=" + cfg.site() + " queue=" + cfg.queue() + " url=" + coreUrl);
           backoffMs = 1000;
