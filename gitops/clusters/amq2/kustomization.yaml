@@ -9,6 +9,7 @@ resources:
   - amq-broker-operatorgroup.yaml
   - amq-broker-subscription.yaml
   - rhsi-subscription.yaml
+  - rhsi-netobs-subscription.yaml
 
   - amq-tls-mqtt-secret.yaml
   - addresses-queues.yaml
@@ -16,6 +17,7 @@ resources:
   - mqtts-lb-service.yaml
 
   - site.yaml
+  - network-observer.yaml
   - amq-connectors.yaml
   - mqtt-connectors.yaml
   - amq-listeners.yaml

@@ -12,6 +12,7 @@ resources:
   - amq-broker-operatorgroup.yaml
   - amq-broker-subscription.yaml
   - rhsi-subscription.yaml
+  - rhsi-netobs-subscription.yaml
 
   # AMQ runtime
   - amq-tls-mqtt-secret.yaml
@@ -21,6 +22,7 @@ resources:
 
   # Service Interconnect (RHSI/Skupper v2)
   - site.yaml
+  - network-observer.yaml
   - amq-connectors.yaml
   - amq-listeners.yaml
   - mqtt-listeners.yaml

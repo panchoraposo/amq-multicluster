@@ -1,0 +1,14 @@
+apiVersion: observability.skupper.io/v2alpha1
+kind: NetworkObserver
+metadata:
+  name: networkobserver
+  namespace: amq-multicluster-skupper
+  annotations:
+    argocd.argoproj.io/sync-wave: "30"
+spec:
+  auth:
+    strategy: openshift
+    openshift:
+      createCookieSecret: true
+      serviceAccount:
+        create: true
