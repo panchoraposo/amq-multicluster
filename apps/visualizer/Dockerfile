@@ -7,7 +7,7 @@ COPY pom.xml pom.xml
 COPY apps/visualizer/pom.xml apps/visualizer/pom.xml
 COPY apps/visualizer/src apps/visualizer/src
 
-RUN mvn -q -DskipTests -pl apps/visualizer package
+RUN mvn -q -DskipTests -f apps/visualizer/pom.xml package
 
 FROM registry.access.redhat.com/ubi9/openjdk-21-runtime:1.22
 WORKDIR /work

@@ -7,7 +7,7 @@ COPY pom.xml pom.xml
 COPY apps/device-simulator/pom.xml apps/device-simulator/pom.xml
 COPY apps/device-simulator/src apps/device-simulator/src
 
-RUN mvn -q -DskipTests -pl apps/device-simulator package
+RUN mvn -q -DskipTests -f apps/device-simulator/pom.xml package
 
 FROM registry.access.redhat.com/ubi9/openjdk-21-runtime:1.22
 WORKDIR /work

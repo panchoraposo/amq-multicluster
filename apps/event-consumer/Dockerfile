@@ -7,7 +7,7 @@ COPY pom.xml pom.xml
 COPY apps/event-consumer/pom.xml apps/event-consumer/pom.xml
 COPY apps/event-consumer/src apps/event-consumer/src
 
-RUN mvn -q -DskipTests -pl apps/event-consumer package
+RUN mvn -q -DskipTests -f apps/event-consumer/pom.xml package
 
 FROM registry.access.redhat.com/ubi9/openjdk-21-runtime:1.22
 WORKDIR /work

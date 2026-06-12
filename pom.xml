@@ -23,6 +23,34 @@
     <quarkus.platform.version>3.33.1.redhat-00006</quarkus.platform.version>
   </properties>
 
+  <repositories>
+    <repository>
+      <id>redhat-ga</id>
+      <name>Red Hat GA</name>
+      <url>https://maven.repository.redhat.com/ga/</url>
+      <releases>
+        <enabled>true</enabled>
+      </releases>
+      <snapshots>
+        <enabled>false</enabled>
+      </snapshots>
+    </repository>
+  </repositories>
+
+  <pluginRepositories>
+    <pluginRepository>
+      <id>redhat-ga</id>
+      <name>Red Hat GA</name>
+      <url>https://maven.repository.redhat.com/ga/</url>
+      <releases>
+        <enabled>true</enabled>
+      </releases>
+      <snapshots>
+        <enabled>false</enabled>
+      </snapshots>
+    </pluginRepository>
+  </pluginRepositories>
+
   <dependencyManagement>
     <dependencies>
       <dependency>
