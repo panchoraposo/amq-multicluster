@@ -100,6 +100,8 @@ spec:
               value: /etc/mqtt/broker.ks
             - name: DEMO_MQTT_KEY_STORE_PASSWORD
               value: amqdemo
+            - name: DEMO_MQTT_TRUST_ALL
+              value: "true"
             - name: DEMO_MQTT_DEVICE_COUNT
               value: "25"
             - name: DEMO_MQTT_INTERVAL_MS

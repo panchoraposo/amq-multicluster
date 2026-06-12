@@ -10,9 +10,12 @@ import jakarta.inject.Inject;
 import javax.net.ssl.KeyManagerFactory;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.TrustManagerFactory;
+import javax.net.ssl.TrustManager;
+import javax.net.ssl.X509TrustManager;
 import java.io.FileInputStream;
 import java.nio.charset.StandardCharsets;
 import java.security.KeyStore;
+import java.security.SecureRandom;
 import java.time.Instant;
 import java.util.UUID;
 import java.util.concurrent.ThreadLocalRandom;
@@ -70,6 +73,9 @@ public class DeviceSimulatorMain implements QuarkusApplication {
     String keyStorePath();
 
     String keyStorePassword();
+
+    @WithDefault("false")
+    boolean trustAll();
   }
 
   @Inject Vertx vertx;
@@ -125,6 +131,29 @@ public class DeviceSimulatorMain implements QuarkusApplication {
   }
 
   private static SSLContext buildSslContext(MqttConfig cfg) throws Exception {
+    if (cfg.trustAll()) {
+      TrustManager[] trustAll = new TrustManager[] {
+        new X509TrustManager() {
+          @Override
+          public java.security.cert.X509Certificate[] getAcceptedIssuers() {
+            return new java.security.cert.X509Certificate[0];
+          }
+
+          @Override
+          public void checkClientTrusted(java.security.cert.X509Certificate[] chain, String authType) {
+          }
+
+          @Override
+          public void checkServerTrusted(java.security.cert.X509Certificate[] chain, String authType) {
+          }
+        }
+      };
+
+      SSLContext ctx = SSLContext.getInstance("TLS");
+      ctx.init(null, trustAll, new SecureRandom());
+      return ctx;
+    }
+
     TrustManagerFactory tmf = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
     KeyStore trustStore = KeyStore.getInstance("JKS");
     try (FileInputStream in = new FileInputStream(cfg.trustStorePath())) {
