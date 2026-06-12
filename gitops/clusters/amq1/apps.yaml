@@ -79,6 +79,8 @@ spec:
         - name: app
           image: image-registry.openshift-image-registry.svc:5000/amq-multicluster-apps/device-simulator:latest
           imagePullPolicy: Always
+          ports:
+            - containerPort: 1880
           env:
             - name: MQTT_SITE
               value: amq1
@@ -96,6 +98,35 @@ spec:
               value: "50"
             - name: MQTT_INTERVAL_MS
               value: "200"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: device-simulator
+  namespace: amq-multicluster-apps
+  annotations:
+    argocd.argoproj.io/sync-wave: "42"
+spec:
+  selector:
+    app: device-simulator
+  ports:
+    - name: http
+      port: 1880
+      targetPort: 1880
+---
+apiVersion: route.openshift.io/v1
+kind: Route
+metadata:
+  name: device-simulator
+  namespace: amq-multicluster-apps
+  annotations:
+    argocd.argoproj.io/sync-wave: "42"
+spec:
+  to:
+    kind: Service
+    name: device-simulator
+  port:
+    targetPort: http
 ---
 apiVersion: apps/v1
 kind: Deployment
