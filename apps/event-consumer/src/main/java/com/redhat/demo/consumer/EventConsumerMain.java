@@ -241,8 +241,6 @@ public class EventConsumerMain implements QuarkusApplication {
     private final Deque<EventSample> last = new ArrayDeque<>();
 
     public void onPayload(String body) throws Exception {
-      received.incrementAndGet();
-
       String key = null;
       if (body != null) {
         int i = body.indexOf("\"eventId\":\"");
@@ -257,11 +255,18 @@ public class EventConsumerMain implements QuarkusApplication {
       if (key == null) {
         key = body;
       }
+      boolean isDuplicate = false;
       if (key != null) {
-        if (seen.putIfAbsent(key, Boolean.TRUE) != null) {
+        isDuplicate = (seen.putIfAbsent(key, Boolean.TRUE) != null);
+        if (isDuplicate) {
           duplicates.incrementAndGet();
         }
       }
+
+      if (isDuplicate) {
+        return;
+      }
+      received.incrementAndGet();
 
       synchronized (last) {
         last.addFirst(new EventSample(Instant.now().toString(), null, body));
@@ -272,8 +277,6 @@ public class EventConsumerMain implements QuarkusApplication {
     }
 
     public void onMessage(Message msg) throws Exception {
-      received.incrementAndGet();
-
       String body = null;
       if (msg instanceof TextMessage tm) {
         body = tm.getText();
@@ -300,11 +303,17 @@ public class EventConsumerMain implements QuarkusApplication {
       if (key == null && body != null) {
         key = body;
       }
+      boolean isDuplicate = false;
       if (key != null) {
-        if (seen.putIfAbsent(key, Boolean.TRUE) != null) {
+        isDuplicate = (seen.putIfAbsent(key, Boolean.TRUE) != null);
+        if (isDuplicate) {
           duplicates.incrementAndGet();
         }
       }
+      if (isDuplicate) {
+        return;
+      }
+      received.incrementAndGet();
 
       synchronized (last) {
         last.addFirst(new EventSample(Instant.now().toString(), msg.getJMSMessageID(), body));
@@ -317,6 +326,15 @@ public class EventConsumerMain implements QuarkusApplication {
     public Snapshot snapshot() {
       synchronized (last) {
         return new Snapshot(received.get(), duplicates.get(), last.toArray(EventSample[]::new));
+      }
+    }
+
+    public void reset() {
+      received.set(0);
+      duplicates.set(0);
+      seen.clear();
+      synchronized (last) {
+        last.clear();
       }
     }
   }
