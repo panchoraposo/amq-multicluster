@@ -48,7 +48,7 @@
       position:relative;background:var(--card);border:1px solid var(--cardb);
       border-radius:18px;box-shadow:var(--shadow);overflow:hidden;
     }
-    .stage{position:relative;width:100%;aspect-ratio:16/9;min-height:540px}
+    .stage{position:relative;width:100%;aspect-ratio:16/9;min-height:560px}
     svg.links{position:absolute;inset:0;width:100%;height:100%;z-index:1}
     .flow{animation:dashflow 1s linear infinite}
     @keyframes dashflow{to{stroke-dashoffset:-28}}
@@ -75,7 +75,11 @@
     .btop{display:flex;align-items:center;gap:10px}
     .bmark{width:12px;height:12px;border-radius:50%;}
     .btitle{font-weight:700}
-    .bmeta{font-size:11px;color:var(--muted);margin-top:2px}
+    .bmeta{
+      font-size:11px;color:var(--muted);margin-top:2px;
+      white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+      max-width:180px;
+    }
     .kpis{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px}
     .kpi{background:rgba(0,0,0,.18);border:1px solid rgba(255,255,255,.08);border-radius:12px;padding:10px}
     .kpi .n{font-size:18px;font-weight:800}
@@ -115,22 +119,22 @@
       <div class="stage" id="stage">
         <svg class="links" viewBox="0 0 1000 560" preserveAspectRatio="none">
           <!-- Local flows -->
-          <path id="p1" d="M180 120 C 220 120, 260 150, 300 180" stroke="rgba(56,189,248,.55)" stroke-width="3" fill="none" stroke-dasharray="10 8" class="flow"/>
-          <path id="p2" d="M500 120 C 520 120, 560 150, 600 180" stroke="rgba(56,189,248,.55)" stroke-width="3" fill="none" stroke-dasharray="10 8" class="flow"/>
-          <path id="p3" d="M820 120 C 780 120, 740 150, 700 180" stroke="rgba(56,189,248,.55)" stroke-width="3" fill="none" stroke-dasharray="10 8" class="flow"/>
+          <path id="p1" d="M160 120 C 190 120, 210 150, 220 180" stroke="rgba(56,189,248,.55)" stroke-width="3" fill="none" stroke-dasharray="10 8" class="flow"/>
+          <path id="p2" d="M500 120 C 500 120, 500 150, 500 180" stroke="rgba(56,189,248,.55)" stroke-width="3" fill="none" stroke-dasharray="10 8" class="flow"/>
+          <path id="p3" d="M840 120 C 810 120, 790 150, 780 180" stroke="rgba(56,189,248,.55)" stroke-width="3" fill="none" stroke-dasharray="10 8" class="flow"/>
 
-          <path id="c1" d="M300 330 C 260 360, 220 400, 180 420" stroke="rgba(61,220,132,.50)" stroke-width="3" fill="none" stroke-dasharray="10 8" class="flow"/>
-          <path id="c2" d="M600 330 C 560 360, 520 400, 500 420" stroke="rgba(61,220,132,.50)" stroke-width="3" fill="none" stroke-dasharray="10 8" class="flow"/>
-          <path id="c3" d="M700 330 C 740 360, 780 400, 820 420" stroke="rgba(61,220,132,.50)" stroke-width="3" fill="none" stroke-dasharray="10 8" class="flow"/>
+          <path id="c1" d="M220 340 C 200 370, 180 400, 160 430" stroke="rgba(61,220,132,.50)" stroke-width="3" fill="none" stroke-dasharray="10 8" class="flow"/>
+          <path id="c2" d="M500 340 C 500 370, 500 400, 500 430" stroke="rgba(61,220,132,.50)" stroke-width="3" fill="none" stroke-dasharray="10 8" class="flow"/>
+          <path id="c3" d="M780 340 C 800 370, 820 400, 840 430" stroke="rgba(61,220,132,.50)" stroke-width="3" fill="none" stroke-dasharray="10 8" class="flow"/>
 
           <!-- Mirror mesh -->
-          <path d="M300 260 L 600 260" stroke="rgba(167,139,250,.35)" stroke-width="3" fill="none" stroke-dasharray="6 10" class="flow"/>
-          <path d="M300 260 L 700 260" stroke="rgba(167,139,250,.35)" stroke-width="3" fill="none" stroke-dasharray="6 10" class="flow"/>
-          <path d="M600 260 L 700 260" stroke="rgba(167,139,250,.35)" stroke-width="3" fill="none" stroke-dasharray="6 10" class="flow"/>
+          <path d="M220 260 L 500 260" stroke="rgba(167,139,250,.35)" stroke-width="3" fill="none" stroke-dasharray="6 10" class="flow"/>
+          <path d="M220 260 L 780 260" stroke="rgba(167,139,250,.35)" stroke-width="3" fill="none" stroke-dasharray="6 10" class="flow"/>
+          <path d="M500 260 L 780 260" stroke="rgba(167,139,250,.35)" stroke-width="3" fill="none" stroke-dasharray="6 10" class="flow"/>
         </svg>
 
         <!-- Producers -->
-        <div class="node endpoint" style="left:180px;top:120px;">
+        <div class="node endpoint" style="left:160px;top:120px;">
           <div class="ic">🧩</div>
           <div class="lbl">Node-RED</div>
           <div class="sub" id="amq1-label-top">AMQ1</div>
@@ -140,14 +144,14 @@
           <div class="lbl">Node-RED</div>
           <div class="sub" id="amq2-label-top">AMQ2</div>
         </div>
-        <div class="node endpoint" style="left:820px;top:120px;">
+        <div class="node endpoint" style="left:840px;top:120px;">
           <div class="ic">🧩</div>
           <div class="lbl">Node-RED</div>
           <div class="sub" id="amq3-label-top">AMQ3</div>
         </div>
 
         <!-- Brokers -->
-        <div class="node broker" style="left:300px;top:260px;">
+        <div class="node broker" style="left:220px;top:260px;">
           <div class="btop"><div class="bmark" id="amq1-dot" style="background:var(--amq1)"></div><div><div class="btitle" id="amq1-label-mid">AMQ1</div><div class="bmeta mono">amq1 · amq-multicluster-amq</div></div></div>
           <div class="kpis">
             <div class="kpi"><div class="n mono" id="amq1-received">-</div><div class="l">received</div></div>
@@ -157,7 +161,7 @@
           </div>
         </div>
 
-        <div class="node broker" style="left:600px;top:260px;">
+        <div class="node broker" style="left:500px;top:260px;">
           <div class="btop"><div class="bmark" id="amq2-dot" style="background:var(--amq2)"></div><div><div class="btitle" id="amq2-label-mid">AMQ2</div><div class="bmeta mono">amq2 · amq-multicluster-amq</div></div></div>
           <div class="kpis">
             <div class="kpi"><div class="n mono" id="amq2-received">-</div><div class="l">received</div></div>
@@ -167,7 +171,7 @@
           </div>
         </div>
 
-        <div class="node broker" style="left:700px;top:260px;">
+        <div class="node broker" style="left:780px;top:260px;">
           <div class="btop"><div class="bmark" id="amq3-dot" style="background:var(--amq3)"></div><div><div class="btitle" id="amq3-label-mid">AMQ3</div><div class="bmeta mono">amq3 · amq-multicluster-amq</div></div></div>
           <div class="kpis">
             <div class="kpi"><div class="n mono" id="amq3-received">-</div><div class="l">received</div></div>
@@ -178,17 +182,17 @@
         </div>
 
         <!-- Consumers -->
-        <div class="node endpoint" style="left:180px;top:420px;">
+        <div class="node endpoint" style="left:160px;top:430px;">
           <div class="ic">📥</div>
           <div class="lbl">Consumer</div>
           <div class="sub" id="amq1-label-bot">AMQ1</div>
         </div>
-        <div class="node endpoint" style="left:500px;top:420px;">
+        <div class="node endpoint" style="left:500px;top:430px;">
           <div class="ic">📥</div>
           <div class="lbl">Consumer</div>
           <div class="sub" id="amq2-label-bot">AMQ2</div>
         </div>
-        <div class="node endpoint" style="left:820px;top:420px;">
+        <div class="node endpoint" style="left:840px;top:430px;">
           <div class="ic">📥</div>
           <div class="lbl">Consumer</div>
           <div class="sub" id="amq3-label-bot">AMQ3</div>
