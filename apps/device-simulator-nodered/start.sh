@@ -12,8 +12,8 @@ OUT="/data/flows.json"
 mkdir -p /data
 
 sed \
-  -e "s|\\${MQTT_HOST}|${MQTT_HOST}|g" \
-  -e "s|\\${MQTT_PORT}|${MQTT_PORT}|g" \
+  -e "s|\\\\\\${MQTT_HOST}|${MQTT_HOST}|g" \
+  -e "s|\\\\\\${MQTT_PORT}|${MQTT_PORT}|g" \
   "${TEMPLATE}" > "${OUT}"
 
 exec /usr/src/node-red/entrypoint.sh
