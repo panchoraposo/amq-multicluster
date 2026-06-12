@@ -46,7 +46,7 @@ public class DemoStateResource {
      * ActiveMQArtemis CR name, e.g. amq-amq1.
      * If not set, we derive it from site (amq-amq1, amq-amq2, amq-amq3).
      */
-    @WithDefault("")
+    @WithDefault("AUTO")
     String brokerCr();
 
     @WithDefault("admin")
@@ -125,7 +125,9 @@ public class DemoStateResource {
   public ConfigPayload config() {
     String site = cfg.site();
     String ns = cfg.namespace();
-    String cr = (cfg.brokerCr() == null || cfg.brokerCr().isBlank()) ? ("amq-" + site) : cfg.brokerCr();
+    String cr = (cfg.brokerCr() == null || cfg.brokerCr().isBlank() || "AUTO".equalsIgnoreCase(cfg.brokerCr()))
+      ? ("amq-" + site)
+      : cfg.brokerCr();
 
     // Internal per-pod console services exist for Operator-deployed brokers:
     // <cr>-wconsj-0-svc and <cr>-wconsj-1-svc (port 8161).
