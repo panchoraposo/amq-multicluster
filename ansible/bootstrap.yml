@@ -11,13 +11,24 @@
       loop: "{{ oc_contexts }}"
       changed_when: true
 
-    - name: Wait for GitOps operator CSV to be Succeeded (all contexts)
+    - name: Wait for GitOps Subscription to resolve currentCSV (all contexts)
       ansible.builtin.command: >
         oc --context {{ item }} -n openshift-gitops-operator
-        wait --for=jsonpath='{.status.phase}'=Succeeded
-        csv -l operators.coreos.com/openshift-gitops-operator.openshift-gitops-operator
-        --timeout=600s
+        get subscription openshift-gitops-operator -o jsonpath='{.status.currentCSV}'
+      register: gitops_csv
+      retries: 120
+      delay: 5
+      until: gitops_csv.stdout is defined and (gitops_csv.stdout | length) > 0
       loop: "{{ oc_contexts }}"
+      changed_when: false
+
+    - name: Wait for GitOps operator CSV to be Succeeded (all contexts)
+      ansible.builtin.command: >
+        oc --context {{ item.item }} -n openshift-gitops-operator
+        wait --for=jsonpath='{.status.phase}'=Succeeded
+        csv {{ item.stdout }}
+        --timeout=600s
+      loop: "{{ gitops_csv.results }}"
       changed_when: false
 
     - name: Wait for openshift-gitops namespace to exist (all contexts)
