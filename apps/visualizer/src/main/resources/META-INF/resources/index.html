@@ -53,6 +53,11 @@
     .flow{animation:dashflow 1s linear infinite}
     @keyframes dashflow{to{stroke-dashoffset:-28}}
     .node{position:absolute;transform:translate(-50%,-50%);z-index:2}
+    .dot{
+      position:absolute;width:10px;height:10px;border-radius:50%;z-index:3;
+      filter: drop-shadow(0 0 10px rgba(255,255,255,.25));
+      opacity:.95;
+    }
     .endpoint{width:130px;text-align:center}
     .endpoint .ic{
       width:62px;height:62px;margin:0 auto 8px;border-radius:16px;
@@ -110,13 +115,13 @@
       <div class="stage" id="stage">
         <svg class="links" viewBox="0 0 1000 560" preserveAspectRatio="none">
           <!-- Local flows -->
-          <path d="M130 120 C 210 120, 250 150, 300 170" stroke="rgba(56,189,248,.55)" stroke-width="3" fill="none" stroke-dasharray="10 8" class="flow"/>
-          <path d="M500 120 C 580 120, 620 150, 670 170" stroke="rgba(56,189,248,.55)" stroke-width="3" fill="none" stroke-dasharray="10 8" class="flow"/>
-          <path d="M870 120 C 790 120, 750 150, 700 170" stroke="rgba(56,189,248,.55)" stroke-width="3" fill="none" stroke-dasharray="10 8" class="flow"/>
+          <path id="p1" d="M130 120 C 210 120, 250 150, 300 170" stroke="rgba(56,189,248,.55)" stroke-width="3" fill="none" stroke-dasharray="10 8" class="flow"/>
+          <path id="p2" d="M500 120 C 580 120, 620 150, 670 170" stroke="rgba(56,189,248,.55)" stroke-width="3" fill="none" stroke-dasharray="10 8" class="flow"/>
+          <path id="p3" d="M870 120 C 790 120, 750 150, 700 170" stroke="rgba(56,189,248,.55)" stroke-width="3" fill="none" stroke-dasharray="10 8" class="flow"/>
 
-          <path d="M300 300 C 250 330, 210 360, 130 370" stroke="rgba(61,220,132,.50)" stroke-width="3" fill="none" stroke-dasharray="10 8" class="flow"/>
-          <path d="M670 300 C 620 330, 580 360, 500 370" stroke="rgba(61,220,132,.50)" stroke-width="3" fill="none" stroke-dasharray="10 8" class="flow"/>
-          <path d="M700 300 C 750 330, 790 360, 870 370" stroke="rgba(61,220,132,.50)" stroke-width="3" fill="none" stroke-dasharray="10 8" class="flow"/>
+          <path id="c1" d="M300 300 C 250 330, 210 360, 130 370" stroke="rgba(61,220,132,.50)" stroke-width="3" fill="none" stroke-dasharray="10 8" class="flow"/>
+          <path id="c2" d="M670 300 C 620 330, 580 360, 500 370" stroke="rgba(61,220,132,.50)" stroke-width="3" fill="none" stroke-dasharray="10 8" class="flow"/>
+          <path id="c3" d="M700 300 C 750 330, 790 360, 870 370" stroke="rgba(61,220,132,.50)" stroke-width="3" fill="none" stroke-dasharray="10 8" class="flow"/>
 
           <!-- Mirror mesh -->
           <path d="M300 240 L 670 240" stroke="rgba(167,139,250,.35)" stroke-width="3" fill="none" stroke-dasharray="6 10" class="flow"/>
@@ -332,6 +337,53 @@
       tb.innerHTML = rows.join("");
     }
 
+    function startDots() {
+      const stage = document.getElementById("stage");
+      const svg = document.querySelector("svg.links");
+      if (!stage || !svg) return;
+
+      const vb = svg.viewBox && svg.viewBox.baseVal ? svg.viewBox.baseVal : { width: 1000, height: 560 };
+      const paths = [
+        { id: "p1", color: "rgba(56,189,248,.95)", speed: 2.0 },
+        { id: "p2", color: "rgba(56,189,248,.95)", speed: 2.3 },
+        { id: "p3", color: "rgba(56,189,248,.95)", speed: 1.9 },
+        { id: "c1", color: "rgba(61,220,132,.95)", speed: 2.1 },
+        { id: "c2", color: "rgba(61,220,132,.95)", speed: 2.0 },
+        { id: "c3", color: "rgba(61,220,132,.95)", speed: 2.2 }
+      ];
+
+      function spawnDot(p) {
+        const path = document.getElementById(p.id);
+        if (!path) return;
+        const dot = document.createElement("div");
+        dot.className = "dot";
+        dot.style.background = p.color;
+        stage.appendChild(dot);
+
+        const len = path.getTotalLength();
+        let t = Math.random() * len;
+
+        function frame() {
+          const svgRect = svg.getBoundingClientRect();
+          const stageRect = stage.getBoundingClientRect();
+          const scaleX = svgRect.width / vb.width;
+          const scaleY = svgRect.height / vb.height;
+
+          t = (t + p.speed) % len;
+          const pt = path.getPointAtLength(t);
+          const x = (pt.x * scaleX) + (svgRect.left - stageRect.left);
+          const y = (pt.y * scaleY) + (svgRect.top - stageRect.top);
+          dot.style.transform = "translate(" + (x - 5) + "px," + (y - 5) + "px)";
+
+          requestAnimationFrame(frame);
+        }
+
+        requestAnimationFrame(frame);
+      }
+
+      paths.forEach(spawnDot);
+    }
+
     async function loop() {
       const snaps = {};
       await Promise.all(sites.map(async (s) => { snaps[s] = await tickSite(s); }));
@@ -341,6 +393,7 @@
 
     loadUi();
     setInterval(loadUi, 15000);
+    startDots();
     loop();
     setInterval(loop, 1500);
   </script>
