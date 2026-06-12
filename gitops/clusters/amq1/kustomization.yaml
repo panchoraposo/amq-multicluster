@@ -7,18 +7,21 @@ resources:
   - namespace-skupper.yaml
   - namespace-apps.yaml
   - namespace-edge.yaml
+  - namespace-analytics.yaml
 
   # Operators
   - amq-broker-operatorgroup.yaml
   - amq-broker-subscription.yaml
   - rhsi-subscription.yaml
   - rhsi-netobs-subscription.yaml
+  - camel-k-subscription.yaml
 
   # AMQ runtime
   - amq-tls-mqtt-secret.yaml
   - addresses-queues.yaml
   - broker.yaml
   - mqtts-lb-service.yaml
+  - mqtt-lb-service.yaml
 
   # Service Interconnect (RHSI/Skupper v2)
   - site.yaml
@@ -32,6 +35,10 @@ resources:
   - imagestreams.yaml
   - buildconfigs.yaml
   - apps.yaml
+
+  # Analytics stack (Kaoto + Postgres + Grafana)
+  - analytics-postgres.yaml
+  - analytics-kaoto.yaml
 
   # Edge ingress (on-prem HAProxy → AMQ1/AMQ2)
   - edge-build.yaml

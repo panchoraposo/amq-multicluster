@@ -44,6 +44,11 @@ spec:
       sslSecret: amq-tls-mqtt
       expose: true
       verifyHost: false
+    - name: mqtt
+      protocols: mqtt
+      port: 1883
+      sslEnabled: false
+      expose: false
     - name: amqp
       protocols: amqp
       port: 5672
