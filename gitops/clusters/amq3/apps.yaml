@@ -96,7 +96,7 @@ spec:
             - containerPort: 1880
           env:
             - name: MQTT_SITE
-              value: azure
+              value: public-cloud
             - name: MQTT_HOST
               value: amq-amq3-mqtts-lb.amq-multicluster-amq.svc
             - name: MQTT_PORT
