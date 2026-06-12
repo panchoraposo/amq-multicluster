@@ -5,6 +5,7 @@ metadata:
   namespace: amq-multicluster
   annotations:
     argocd.argoproj.io/sync-wave: "23"
+    argocd.argoproj.io/sync-options: SkipDryRunOnMissingResource=true
 spec:
   routingKey: amq-amq1-mirror
   host: amq-amq1-mirror
@@ -17,6 +18,7 @@ metadata:
   namespace: amq-multicluster
   annotations:
     argocd.argoproj.io/sync-wave: "23"
+    argocd.argoproj.io/sync-options: SkipDryRunOnMissingResource=true
 spec:
   routingKey: amq-amq2-mirror
   host: amq-amq2-mirror

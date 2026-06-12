@@ -5,6 +5,7 @@ metadata:
   namespace: amq-multicluster
   annotations:
     argocd.argoproj.io/sync-wave: "21"
+    argocd.argoproj.io/sync-options: SkipDryRunOnMissingResource=true
 spec:
   redemptionsAllowed: 2
   expirationWindow: 1h

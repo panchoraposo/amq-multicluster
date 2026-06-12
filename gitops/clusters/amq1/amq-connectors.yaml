@@ -5,6 +5,7 @@ metadata:
   namespace: amq-multicluster
   annotations:
     argocd.argoproj.io/sync-wave: "22"
+    argocd.argoproj.io/sync-options: SkipDryRunOnMissingResource=true
 spec:
   routingKey: amq-amq1-mirror
   selector: ActiveMQArtemis=amq-amq1

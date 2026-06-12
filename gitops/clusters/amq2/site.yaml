@@ -5,4 +5,5 @@ metadata:
   namespace: amq-multicluster
   annotations:
     argocd.argoproj.io/sync-wave: "20"
+    argocd.argoproj.io/sync-options: SkipDryRunOnMissingResource=true
 
