@@ -11,7 +11,7 @@ OUT="/data/flows.json"
 
 mkdir -p /data
 
-node -e '
+TEMPLATE="${TEMPLATE}" OUT="${OUT}" node -e '
   const fs = require("fs");
   const tpl = process.env.TEMPLATE;
   const out = process.env.OUT;
@@ -21,7 +21,7 @@ node -e '
   s = s.replace(/\$\{MQTT_HOST\}/g, host);
   s = s.replace(/\$\{MQTT_PORT\}/g, port);
   fs.writeFileSync(out, s);
-' TEMPLATE="${TEMPLATE}" OUT="${OUT}"
+'
 
 exec /usr/src/node-red/entrypoint.sh
 
