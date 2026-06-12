@@ -23,5 +23,6 @@ TEMPLATE="${TEMPLATE}" OUT="${OUT}" node -e '
   fs.writeFileSync(out, s);
 '
 
-exec /usr/src/node-red/entrypoint.sh
+PORT="${PORT:-1880}"
+exec node-red --userDir /data --port "${PORT}"
 
