@@ -11,12 +11,35 @@ La conectividad entre clusters se realiza con **Service Interconnect / Skupper**
 ## Pasos (resumen)
 
 1. Instalar AMQ Broker Operator (7.14.x) en cada cluster.
-2. Desplegar el `ActiveMQArtemis` en cada cluster.
+2. Desplegar el `ActiveMQArtemis` en cada cluster (MQTT/TLS + AMQP mirroring).
 3. Configurar Service Interconnect para que cada cluster pueda resolver/conectar los endpoints AMQP de los otros sitios.
-4. Validar mirroring bidireccional (malla): publicar en un sitio y verificar que el evento aparece en los otros dos.
-5. Correr simuladores Quarkus (por sitio) y abrir el visualizer UI.
+4. Levantar **HAProxy on‑prem** (en `amq1`) y exponer `mqtts://<host>:443` con passthrough TLS.
+5. Correr simuladores (Node‑RED) + consumidores y abrir el `visualizer`.
 
-## Visualizer con Jolokia
+## URLs rápidas
+
+```bash
+./scripts/demo-urls.sh
+```
+
+## Reset de contadores (para “demo clean”)
+
+El `event-consumer` expone un endpoint para reiniciar contadores y el buffer de “latest events”:
+
+```bash
+./scripts/demo-reset.sh
+```
+
+## Validar flujo (3 sitios)
+
+```bash
+./scripts/demo-verify-flow.sh 3
+```
+
+## Notas sobre topics/addresses
+
+- **MQTT topic** usado por el simulador: `iot/events/v4`
+- **Core address / queue** en Artemis: `iot.events.v4` (Artemis traduce `/` → `.`)
 
 Para que el visualizer muestre `Uptime` por sitio, configura los base URLs de Jolokia (uno por cluster):
 
