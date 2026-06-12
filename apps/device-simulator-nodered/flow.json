@@ -1,15 +1,15 @@
 [
   {
-    "id": "tab-amq-demo",
+    "id": "f1a2b3c4d5e6f7a8",
     "type": "tab",
     "label": "AMQ Multicluster Device Simulator",
     "disabled": false,
     "info": ""
   },
   {
-    "id": "inject-tick",
+    "id": "1111111111111111",
     "type": "inject",
-    "z": "tab-amq-demo",
+    "z": "f1a2b3c4d5e6f7a8",
     "name": "tick",
     "props": [],
     "repeat": "${MQTT_INTERVAL_MS}",
@@ -21,14 +21,14 @@
     "y": 100,
     "wires": [
       [
-        "fn-generate"
+        "2222222222222222"
       ]
     ]
   },
   {
-    "id": "fn-generate",
+    "id": "2222222222222222",
     "type": "function",
-    "z": "tab-amq-demo",
+    "z": "f1a2b3c4d5e6f7a8",
     "name": "generate event",
     "func": "const site = env.get(\"MQTT_SITE\") || \"amq1\";\nconst topic = env.get(\"MQTT_TOPIC\") || \"iot/events/v2\";\nconst deviceCount = parseInt(env.get(\"DEVICE_COUNT\") || \"25\", 10);\nconst pod = env.get(\"HOSTNAME\") || \"nodered\";\n\nlet seq = context.get(\"seq\") || {};\nconst idx = Math.floor(Math.random() * deviceCount) + 1;\nconst deviceId = `device-${idx}`;\nseq[deviceId] = (seq[deviceId] || 0) + 1;\ncontext.set(\"seq\", seq);\n\nconst eventId = `${Date.now().toString(36)}-${pod}-${Math.random().toString(36).slice(2)}`;\n\nmsg.topic = topic;\nmsg.payload = {\n  site,\n  eventId,\n  deviceId,\n  seq: seq[deviceId],\n  ts: new Date().toISOString()\n};\n\nreturn msg;",
     "outputs": 1,
@@ -36,35 +36,34 @@
     "initialize": "",
     "finalize": "",
     "libs": [],
-    "x": 340,
+    "x": 350,
     "y": 100,
     "wires": [
       [
-        "json",
-        "mqtt-out"
+        "3333333333333333"
       ]
     ]
   },
   {
-    "id": "json",
+    "id": "3333333333333333",
     "type": "json",
-    "z": "tab-amq-demo",
+    "z": "f1a2b3c4d5e6f7a8",
     "name": "to JSON",
     "property": "payload",
     "action": "",
     "pretty": false,
-    "x": 520,
-    "y": 80,
+    "x": 530,
+    "y": 100,
     "wires": [
       [
-        "mqtt-out"
+        "4444444444444444"
       ]
     ]
   },
   {
-    "id": "mqtt-out",
+    "id": "4444444444444444",
     "type": "mqtt out",
-    "z": "tab-amq-demo",
+    "z": "f1a2b3c4d5e6f7a8",
     "name": "publish",
     "topic": "",
     "qos": "0",
@@ -74,15 +73,15 @@
     "userProps": "",
     "correl": "",
     "expiry": "",
-    "broker": "mqtt-broker",
-    "x": 660,
-    "y": 120,
+    "broker": "5555555555555555",
+    "x": 690,
+    "y": 100,
     "wires": []
   },
   {
-    "id": "mqtt-broker",
+    "id": "5555555555555555",
     "type": "mqtt-broker",
-    "name": "amq mqtts",
+    "name": "amq mqtts (insecure demo)",
     "broker": "${MQTT_HOST}",
     "port": "${MQTT_PORT}",
     "clientid": "nodered-${HOSTNAME}",
@@ -105,14 +104,10 @@
     "willPayload": "",
     "willMsg": {},
     "sessionExpiry": "",
-    "credentials": {
-      "user": "${MQTT_USERNAME}",
-      "password": "${MQTT_PASSWORD}"
-    },
-    "tls": "tls-insecure"
+    "tls": "6666666666666666"
   },
   {
-    "id": "tls-insecure",
+    "id": "6666666666666666",
     "type": "tls-config",
     "name": "insecure-demo",
     "cert": "",

@@ -10,7 +10,7 @@ spec:
     size: 2
     clustered: true
     persistenceEnabled: true
-    requireLogin: true
+    requireLogin: false
     messageMigration: true
   adminUser: admin
   adminPassword: admin
