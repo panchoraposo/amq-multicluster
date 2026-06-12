@@ -115,6 +115,7 @@ public class EventConsumerMain implements QuarkusApplication {
     opts.setKeepAliveInterval(30);
     if (mqtt.insecureTls()) {
       opts.setSocketFactory(trustAllSocketFactory());
+      opts.setHttpsHostnameVerificationEnabled(false);
     }
 
     MqttClient client = new MqttClient(brokerUrl, clientId, new MemoryPersistence());
