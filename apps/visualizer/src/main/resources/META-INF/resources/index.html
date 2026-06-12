@@ -27,15 +27,16 @@
       display:flex;align-items:center;gap:16px;padding:18px 26px;
       border-bottom:1px solid rgba(255,255,255,.06);
     }
-    .logo{display:flex;align-items:center;gap:12px}
+    .logo{display:flex;align-items:center;gap:12px;min-width:0}
     .logo .mark{
       width:38px;height:38px;border-radius:10px;flex:0 0 auto;
       background:linear-gradient(135deg,var(--rh),#a30000);
       box-shadow:0 6px 18px rgba(238,0,0,.4);
-      display:grid;place-items:center;font-weight:800;color:#fff;font-size:18px;
+      display:grid;place-items:center;
     }
-    .logo h1{font-size:18px;margin:0;font-weight:700;letter-spacing:.2px}
-    .logo p{margin:0;font-size:12px;color:var(--muted)}
+    .logo svg{display:block;width:22px;height:22px}
+    .logo h1{font-size:18px;margin:0;font-weight:800;letter-spacing:.2px;line-height:1.05}
+    .logo p{margin:2px 0 0;font-size:12px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
     .spacer{flex:1}
     .pill{
       display:inline-flex;align-items:center;gap:7px;font-size:12.5px;
@@ -56,19 +57,18 @@
     .stage{position:relative;width:100%;aspect-ratio:16/9;min-height:560px}
     svg#svg{position:absolute;inset:0;width:100%;height:100%;z-index:1}
     .flow{animation:dashflow 1s linear infinite}
-    body.no-traffic .flow{animation:none; opacity:.28}
     @keyframes dashflow{to{stroke-dashoffset:-28}}
 
     .node{position:absolute;transform:translate(-50%,-50%);z-index:2}
-    .endpoint{width:132px;text-align:center;}
+    .endpoint{width:148px;text-align:center;}
     .endpoint .ic{
       width:62px;height:62px;margin:0 auto 8px;border-radius:16px;
       display:grid;place-items:center;font-size:26px;
       background:linear-gradient(135deg,rgba(255,255,255,.10),rgba(255,255,255,.03));
       border:1px solid var(--cardb);box-shadow:var(--shadow)
     }
-    .endpoint .lbl{font-size:13px;font-weight:700}
-    .endpoint .sub{font-size:11px;color:var(--muted)}
+    .endpoint .lbl{font-size:13px;font-weight:800}
+    .endpoint .sub{font-size:11px;color:var(--muted);line-height:1.15}
     .badge{display:inline-block;margin-top:5px;font-size:11px;padding:2px 8px;border-radius:999px;
       background:rgba(56,189,248,.16);color:var(--cyan);border:1px solid rgba(56,189,248,.3)}
 
@@ -80,9 +80,9 @@
     .broker.online{border-color:rgba(61,220,132,.35)}
     .broker.offline{opacity:.55;filter:grayscale(.7);border-color:rgba(255,77,77,.45)}
     .broker .top{display:flex;align-items:center;justify-content:space-between;gap:10px}
-    .broker .nm{font-weight:800;font-size:15px;display:flex;align-items:center;gap:10px}
+    .broker .nm{font-weight:900;font-size:15px;display:flex;align-items:center;gap:10px}
     .bmark{width:11px;height:11px;border-radius:50%;}
-    .st{font-size:10.5px;font-weight:800;padding:3px 9px;border-radius:999px;
+    .st{font-size:10.5px;font-weight:900;padding:3px 9px;border-radius:999px;
       letter-spacing:.4px;text-transform:uppercase}
     .st.online{background:rgba(61,220,132,.16);color:var(--green);border:1px solid rgba(61,220,132,.35)}
     .st.offline{background:rgba(255,77,77,.14);color:#ffb8b8;border:1px solid rgba(255,77,77,.35)}
@@ -90,7 +90,7 @@
     .grid2{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px}
     .met{background:rgba(0,0,0,.22);border:1px solid rgba(255,255,255,.05);
       border-radius:10px;padding:7px 9px}
-    .met .v{font-size:18px;font-weight:800;line-height:1}
+    .met .v{font-size:18px;font-weight:900;line-height:1}
     .met .k{font-size:10px;color:var(--muted);margin-top:3px}
     .met.hl .v{color:var(--cyan)}
     .met.bad .v{color:#ff7a7a}
@@ -102,18 +102,10 @@
       letter-spacing:.6px;color:var(--muted)}
     .seg{display:flex;background:rgba(0,0,0,.25);border-radius:12px;padding:4px;gap:4px}
     .seg button{flex:1;border:0;background:transparent;color:var(--muted);
-      padding:9px;border-radius:9px;font-weight:700;cursor:pointer;font-size:13px}
+      padding:9px;border-radius:9px;font-weight:800;cursor:pointer;font-size:13px}
     .seg button.on{background:linear-gradient(135deg,var(--rh),#b00);color:#fff;
       box-shadow:0 6px 16px rgba(238,0,0,.35)}
-    .narr{font-size:13.5px;line-height:1.5;min-height:64px}
-    .links{display:flex;flex-wrap:wrap;gap:8px}
-    .link{
-      display:inline-flex;align-items:center;gap:8px;
-      border:1px solid var(--cardb);background:rgba(0,0,0,.18);
-      padding:8px 10px;border-radius:11px;color:var(--txt);text-decoration:none;
-      font-size:12.5px;font-weight:700;
-    }
-    .link:hover{background:rgba(255,255,255,.08)}
+    .narr{font-size:13.5px;line-height:1.5;min-height:72px}
     .legend{display:flex;flex-direction:column;gap:9px;font-size:12.5px;color:var(--muted)}
     .legend .row{display:flex;align-items:center;gap:10px}
     .swatch{width:14px;height:14px;border-radius:50%;flex:0 0 auto}
@@ -135,10 +127,17 @@
   <div id="toast" class="toast"></div>
   <header>
     <div class="logo">
-      <div class="mark">AMQ</div>
-      <div>
+      <div class="mark" aria-hidden="true">
+        <svg viewBox="0 0 64 64" fill="none">
+          <path d="M32 6c11.6 0 21 9.4 21 21 0 6.9-3.3 13-8.5 16.8L47 58H37l-2-8H29l-2 8H17l2.5-14.4C14.3 40 11 33.9 11 27 11 15.4 20.4 6 32 6Z" fill="rgba(255,255,255,.18)"/>
+          <path d="M32 12c8.3 0 15 6.7 15 15 0 6.8-4.4 12.5-10.5 14.4l1.3 5.6h-3.9l-1.3-5.2c-.2 0-.4 0-.6 0s-.4 0-.6 0L30 47h-3.9l1.3-5.6C21.4 39.5 17 33.8 17 27c0-8.3 6.7-15 15-15Z" fill="white"/>
+          <path d="M26.5 28.8 32 18l5.5 10.8H26.5Z" fill="#ee0000"/>
+          <path d="M24 34h16l-2.1 4H26.1L24 34Z" fill="#ee0000"/>
+        </svg>
+      </div>
+      <div style="min-width:0">
         <h1>AMQ Broker · Multicluster</h1>
-        <p>3 brokers · topic/queue · multiple producers</p>
+        <p>On‑prem devices → HAProxy → AMQ1/AMQ2 · Azure‑only devices → AMQ3</p>
       </div>
     </div>
     <div class="spacer"></div>
@@ -176,11 +175,6 @@
       </div>
 
       <div class="panel">
-        <h3>Quick links</h3>
-        <div class="links" id="quick-links"></div>
-      </div>
-
-      <div class="panel">
         <h3>Latest events</h3>
         <div class="row">
           <div class="mono" style="font-size:12px;color:var(--muted)">Latest payload per site (from <span class="mono">event-consumer</span>)</div>
@@ -194,8 +188,8 @@
       <div class="panel">
         <h3>Legend</h3>
         <div class="legend">
-          <div class="row"><span class="swatch" style="background:#38bdf8"></span> Producer → Broker</div>
-          <div class="row"><span class="swatch" style="background:#3ddc84"></span> Broker → Consumer</div>
+          <div class="row"><span class="swatch" style="background:#38bdf8"></span> Ingest (devices → broker)</div>
+          <div class="row"><span class="swatch" style="background:#3ddc84"></span> Consume (broker → consumer)</div>
           <div class="row"><span class="swatch" style="background:#2dd4bf"></span> Mirror replication</div>
         </div>
       </div>
@@ -208,11 +202,7 @@
     const NS = "http://www.w3.org/2000/svg";
 
     const SITES = ["amq1","amq2","amq3"];
-    const COLORS = {
-      produce:"#38bdf8",
-      consume:"#3ddc84",
-      mirror:"#2dd4bf"
-    };
+    const COLORS = {ingest:"#38bdf8", consume:"#3ddc84", mirror:"#2dd4bf"};
 
     let mode = "topic"; // topic | queue
     let ui = null;
@@ -220,13 +210,13 @@
     let dots = [];
     let snapshots = {}; // site -> snapshot
     let prevReceived = {}; // site -> received
-    let trafficUntil = 0;
+    let rr = 0; // for on-prem distribution when deltas are unknown
 
     const ANCHORS = {
-      // three columns
-      prod1:{x:.18,y:.16}, br1:{x:.18,y:.48}, con1:{x:.18,y:.82},
-      prod2:{x:.50,y:.16}, br2:{x:.50,y:.48}, con2:{x:.50,y:.82},
-      prod3:{x:.82,y:.16}, br3:{x:.82,y:.48}, con3:{x:.82,y:.82},
+      onprem:{x:.34,y:.16}, // HAProxy ingress for on-prem devices (AMQ1/AMQ2)
+      azure:{x:.82,y:.16},  // Azure-only devices (AMQ3)
+      br1:{x:.18,y:.48}, br2:{x:.50,y:.48}, br3:{x:.82,y:.48},
+      con1:{x:.18,y:.82}, con2:{x:.50,y:.82}, con3:{x:.82,y:.82},
     };
 
     function nodeEl(id){ return document.getElementById("node-"+id); }
@@ -249,7 +239,6 @@
     }
 
     function cubic(a,b,curv=0.22){
-      // smooth bezier like amq-broker-demo
       const dx = b.x-a.x;
       const c1 = {x:a.x + dx*curv, y:a.y};
       const c2 = {x:b.x - dx*curv, y:b.y};
@@ -260,7 +249,7 @@
       p.setAttribute("d", d);
       p.setAttribute("fill","none");
       p.setAttribute("stroke", stroke);
-      p.setAttribute("stroke-width", opts.w || "2.6");
+      p.setAttribute("stroke-width", opts.w || "2.7");
       p.setAttribute("stroke-linecap","round");
       if(opts.dash){ p.setAttribute("stroke-dasharray", opts.dash); p.classList.add("flow"); }
       if(opts.arrow){ p.setAttribute("marker-end","url(#arrow)"); }
@@ -302,7 +291,7 @@
       const received = online ? (snap.received ?? 0) : 0;
       const dup = online ? (snap.duplicates ?? 0) : 0;
       const last = online && snap.last && snap.last.length ? snap.last[0] : null;
-      const lastId = last && last.props ? (last.props.eventId || last.props.eventid || "") : "";
+      const lastId = last && last.body && String(last.body).includes("\"eventId\"") ? "ok" : "-";
       const html = `
         <div class="broker ${stCls}">
           <div class="top">
@@ -316,7 +305,7 @@
             <div class="met hl"><div class="v mono">${received}</div><div class="k">received</div></div>
             <div class="met bad"><div class="v mono">${dup}</div><div class="k">duplicates</div></div>
             <div class="met"><div class="v mono">${(snap && snap.last ? snap.last.length : 0)}</div><div class="k">last buffer</div></div>
-            <div class="met"><div class="v mono">${lastId ? "ok" : "-"}</div><div class="k">last eventId</div></div>
+            <div class="met"><div class="v mono">${lastId}</div><div class="k">last eventId</div></div>
           </div>
         </div>`;
       return html;
@@ -327,9 +316,8 @@
       const s2 = snapshots.amq2 || null;
       const s3 = snapshots.amq3 || null;
 
-      ensureNode("prod-amq1", `<div class="endpoint"><div class="ic">🧩</div><div class="lbl">Node-RED</div><div class="sub">${siteLabel("amq1")}</div></div>`);
-      ensureNode("prod-amq2", `<div class="endpoint"><div class="ic">🧩</div><div class="lbl">Node-RED</div><div class="sub">${siteLabel("amq2")}</div></div>`);
-      ensureNode("prod-amq3", `<div class="endpoint"><div class="ic">🧩</div><div class="lbl">Node-RED</div><div class="sub">${siteLabel("amq3")}</div></div>`);
+      ensureNode("onprem", `<div class="endpoint"><div class="ic">🧭</div><div class="lbl">HAProxy (on‑prem)</div><div class="sub">routes to ${siteLabel("amq1")} or ${siteLabel("amq2")}<div class="badge">L4 TCP</div></div></div>`);
+      ensureNode("azure", `<div class="endpoint"><div class="ic">🧩</div><div class="lbl">Azure‑only devices</div><div class="sub">Node‑RED → ${siteLabel("amq3")}<div class="badge">MQTTS</div></div></div>`);
 
       ensureNode("br-amq1", brokerCard("amq1", s1));
       ensureNode("br-amq2", brokerCard("amq2", s2));
@@ -339,9 +327,8 @@
       ensureNode("con-amq2", `<div class="endpoint"><div class="ic">📥</div><div class="lbl">Consumer</div><div class="sub">${siteLabel("amq2")}</div></div>`);
       ensureNode("con-amq3", `<div class="endpoint"><div class="ic">📥</div><div class="lbl">Consumer</div><div class="sub">${siteLabel("amq3")}</div></div>`);
 
-      moveNode("prod-amq1", layout.prod1);
-      moveNode("prod-amq2", layout.prod2);
-      moveNode("prod-amq3", layout.prod3);
+      moveNode("onprem", layout.onprem);
+      moveNode("azure", layout.azure);
       moveNode("br-amq1", layout.br1);
       moveNode("br-amq2", layout.br2);
       moveNode("br-amq3", layout.br3);
@@ -352,31 +339,18 @@
 
     function drawPaths(){
       pathsG.innerHTML = "";
-
-      // local produce/consume curves
-      const p1 = cubic(layout.prod1, layout.br1);
-      const p2 = cubic(layout.prod2, layout.br2);
-      const p3 = cubic(layout.prod3, layout.br3);
-      const c1 = cubic(layout.br1, layout.con1);
-      const c2 = cubic(layout.br2, layout.con2);
-      const c3 = cubic(layout.br3, layout.con3);
-
-      pathsG.appendChild(linePath(p1, "rgba(56,189,248,.28)", {w:"2.8", dash:"10 10"}));
-      pathsG.appendChild(linePath(p2, "rgba(56,189,248,.28)", {w:"2.8", dash:"10 10"}));
-      pathsG.appendChild(linePath(p3, "rgba(56,189,248,.28)", {w:"2.8", dash:"10 10"}));
-
-      pathsG.appendChild(linePath(c1, "rgba(61,220,132,.26)", {w:"2.8", dash:"10 10"}));
-      pathsG.appendChild(linePath(c2, "rgba(61,220,132,.26)", {w:"2.8", dash:"10 10"}));
-      pathsG.appendChild(linePath(c3, "rgba(61,220,132,.26)", {w:"2.8", dash:"10 10"}));
-
-      // mirror mesh between brokers
-      const m12 = cubic(layout.br1, layout.br2, 0.18);
-      const m23 = cubic(layout.br2, layout.br3, 0.18);
-      const m13 = cubic(layout.br1, layout.br3, 0.12);
-
-      pathsG.appendChild(linePath(m12, "rgba(45,212,191,.32)", {w:"2.7", dash:"7 9"}));
-      pathsG.appendChild(linePath(m23, "rgba(45,212,191,.32)", {w:"2.7", dash:"7 9"}));
-      pathsG.appendChild(linePath(m13, "rgba(45,212,191,.22)", {w:"2.5", dash:"7 11"}));
+      // ingest lines
+      pathsG.appendChild(linePath(cubic(layout.onprem, layout.br1), "rgba(56,189,248,.28)", {w:"2.9", dash:"10 10"}));
+      pathsG.appendChild(linePath(cubic(layout.onprem, layout.br2), "rgba(56,189,248,.28)", {w:"2.9", dash:"10 10"}));
+      pathsG.appendChild(linePath(cubic(layout.azure, layout.br3), "rgba(56,189,248,.28)", {w:"2.9", dash:"10 10"}));
+      // consume lines
+      pathsG.appendChild(linePath(cubic(layout.br1, layout.con1), "rgba(61,220,132,.26)", {w:"2.9", dash:"10 10"}));
+      pathsG.appendChild(linePath(cubic(layout.br2, layout.con2), "rgba(61,220,132,.26)", {w:"2.9", dash:"10 10"}));
+      pathsG.appendChild(linePath(cubic(layout.br3, layout.con3), "rgba(61,220,132,.26)", {w:"2.9", dash:"10 10"}));
+      // mirror mesh
+      pathsG.appendChild(linePath(cubic(layout.br1, layout.br2, 0.18), "rgba(45,212,191,.32)", {w:"2.7", dash:"7 9"}));
+      pathsG.appendChild(linePath(cubic(layout.br2, layout.br3, 0.18), "rgba(45,212,191,.32)", {w:"2.7", dash:"7 9"}));
+      pathsG.appendChild(linePath(cubic(layout.br1, layout.br3, 0.12), "rgba(45,212,191,.22)", {w:"2.5", dash:"7 11"}));
     }
 
     function spawnDot(route, color, speed){
@@ -417,14 +391,10 @@
       requestAnimationFrame(animate);
     }
 
-    function setTrafficActive(active){
-      document.body.classList.toggle("no-traffic", !active);
-    }
-
     function toast(msg){
       const t=$("#toast"); t.textContent=msg; t.classList.add("show");
       clearTimeout(window.__toastT);
-      window.__toastT=setTimeout(()=>t.classList.remove("show"),3200);
+      window.__toastT=setTimeout(()=>t.classList.remove("show"),2800);
     }
     function updateConn(ok){
       $("#connDot").className="dot "+(ok?"ok":"bad");
@@ -433,47 +403,26 @@
 
     function updateModeHelp(){
       $("#modeHelp").textContent = mode==="topic"
-        ? "Topic (multicast): each publish is mirrored, each site can consume its converged copy."
-        : "Queue (anycast): point-to-point semantics (single consumer receives each message).";
-      $("#topicTag").textContent = "iot.events.v3";
+        ? "Topic (multicast): HAProxy distributes on-prem ingest to AMQ1/AMQ2; Azure-only devices ingest to AMQ3. Mirrors converge data across all brokers."
+        : "Queue (anycast): point-to-point delivery (single consumer receives each message).";
     }
 
     function updateNarration(){
       const ups = SITES.filter(s=>!!snapshots[s]);
       const downs = SITES.filter(s=>!snapshots[s]);
       if(downs.length){
-        $("#narr").innerHTML = `<b>${downs.map(siteLabel).join(", ")}</b> OFFLINE (snapshot unavailable). Others keep serving.`;
+        $("#narr").innerHTML = `<b>${downs.map(siteLabel).join(", ")}</b> snapshot unavailable. Others keep serving.`;
         return;
       }
       if(mode==="topic"){
-        $("#narr").innerHTML = `Topic mode (multicast). Producers publish on each site and events are mirrored across <b>${ups.map(siteLabel).join(", ")}</b>.`;
+        $("#narr").innerHTML =
+          `<b>On‑prem devices</b> connect to <b>HAProxy</b> and are distributed to <b>${siteLabel("amq1")}</b>/<b>${siteLabel("amq2")}</b>. ` +
+          `<b>Azure‑only devices</b> publish directly to <b>${siteLabel("amq3")}</b>. ` +
+          `Mirrors replicate the topic so each cluster can consume a converged copy.`;
       }else{
-        $("#narr").innerHTML = `Queue mode (anycast). Point-to-point delivery: each message goes to one consumer on the target broker.`;
+        $("#narr").innerHTML =
+          `Queue mode (anycast): point-to-point semantics. Use this view when demonstrating competing consumers and HA failover without fan-out.`;
       }
-    }
-
-    function renderLinks(){
-      const el=$("#quick-links");
-      el.innerHTML="";
-      const add=(label,href)=>{
-        if(!href) return;
-        const a=document.createElement("a");
-        a.className="link";
-        a.href=href;
-        a.target="_blank";
-        a.rel="noreferrer";
-        a.textContent=label;
-        el.appendChild(a);
-      };
-      add((ui?.amq1Label||"AMQ1")+" console", ui?.amq1BrokerConsoleUrl);
-      add((ui?.amq2Label||"AMQ2")+" console", ui?.amq2BrokerConsoleUrl);
-      add((ui?.amq3Label||"AMQ3")+" console", ui?.amq3BrokerConsoleUrl);
-      add((ui?.amq1Label||"AMQ1")+" consumer", ui?.amq1ConsumerUrl);
-      add((ui?.amq2Label||"AMQ2")+" consumer", ui?.amq2ConsumerUrl);
-      add((ui?.amq3Label||"AMQ3")+" consumer", ui?.amq3ConsumerUrl);
-      add((ui?.amq1Label||"AMQ1")+" Node-RED", ui?.amq1SimulatorUrl);
-      add((ui?.amq2Label||"AMQ2")+" Node-RED", ui?.amq2SimulatorUrl);
-      add((ui?.amq3Label||"AMQ3")+" Node-RED", ui?.amq3SimulatorUrl);
     }
 
     function renderEvents(){
@@ -494,27 +443,36 @@
       tb.innerHTML = rows.join("");
     }
 
-    function spawnForDelta(site, delta){
-      if(delta<=0) return;
-      const n = Math.max(0, Math.min(8, delta));
-      const idx = site==="amq1" ? 1 : site==="amq2" ? 2 : 3;
-      const prod = layout["prod"+idx], br = layout["br"+idx], con = layout["con"+idx];
-
+    function spawnIngestTo(siteKey, n){
+      const br = siteKey==="amq1"?layout.br1 : siteKey==="amq2"?layout.br2 : layout.br3;
+      const src = (siteKey==="amq3") ? layout.azure : layout.onprem;
       for(let i=0;i<n;i++){
-        setTimeout(()=>spawnDot([prod, br], COLORS.produce, 260), i*90);
-        setTimeout(()=>spawnDot([br, con], COLORS.consume, 260), i*90 + 80);
+        setTimeout(()=>spawnDot([src, br], COLORS.ingest, 260), i*90);
+        setTimeout(()=>spawnDot([br, siteKey==="amq1"?layout.con1:siteKey==="amq2"?layout.con2:layout.con3], COLORS.consume, 260), i*90 + 80);
       }
-
       if(mode==="topic"){
-        const others = SITES.filter(s=>s!==site);
-        others.forEach((o, j)=>{
-          const jdx = o==="amq1" ? 1 : o==="amq2" ? 2 : 3;
-          const obr = layout["br"+jdx];
-          for(let i=0;i<Math.min(4,n);i++){
-            setTimeout(()=>spawnDot([br, obr], COLORS.mirror, 200), (j*120) + i*110);
+        const all = ["amq1","amq2","amq3"];
+        const from = br;
+        all.filter(s=>s!==siteKey).forEach((t, j)=>{
+          const to = t==="amq1"?layout.br1 : t==="amq2"?layout.br2 : layout.br3;
+          const m = Math.max(1, Math.min(3, Math.floor(n/2)));
+          for(let i=0;i<m;i++){
+            setTimeout(()=>spawnDot([from, to], COLORS.mirror, 200), (j*120) + i*110);
           }
         });
       }
+    }
+
+    function heartbeat(){
+      // Keep motion continuous even when counters are momentarily flat.
+      // If we have any snapshot at all, we keep a low constant stream.
+      const okAny = SITES.some(s=>!!snapshots[s]);
+      if(!okAny) return;
+      // Azure always -> AMQ3
+      spawnIngestTo("amq3", 1);
+      // On-prem distributed -> AMQ1/AMQ2
+      rr = (rr + 1) % 2;
+      spawnIngestTo(rr===0 ? "amq1" : "amq2", 1);
     }
 
     async function loadUi(){
@@ -525,7 +483,6 @@
         document.documentElement.style.setProperty("--amq1", ui.amq1Color || "#2563eb");
         document.documentElement.style.setProperty("--amq2", ui.amq2Color || "#16a34a");
         document.documentElement.style.setProperty("--amq3", ui.amq3Color || "#a21caf");
-        renderLinks();
         computeLayout();
       }catch(e){
         ui = null;
@@ -554,13 +511,11 @@
         prevReceived[site] = cur;
         snapshots[site] = snap;
         if(delta>0){
-          trafficUntil = Date.now() + 3500;
-          spawnForDelta(site, delta);
+          const n = Math.max(1, Math.min(8, delta));
+          spawnIngestTo(site, n);
         }
       });
-
       updateConn(okAny);
-      setTrafficActive(Date.now() < trafficUntil);
       placeNodes();
       updateNarration();
       renderEvents();
@@ -572,6 +527,7 @@
       $("#btnQueue").classList.toggle("on", m==="queue");
       updateModeHelp();
       toast(m==="topic" ? "Topic mode" : "Queue mode");
+      drawPaths();
     }
 
     window.addEventListener("resize", ()=>computeLayout());
@@ -585,7 +541,8 @@
       computeLayout();
       await loop();
       setInterval(loadUi, 15000);
-      setInterval(loop, 1300);
+      setInterval(loop, 1400);
+      setInterval(heartbeat, 700);
     })();
   </script>
 </body>
