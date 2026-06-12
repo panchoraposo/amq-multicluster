@@ -32,6 +32,10 @@ spec:
       sslEnabled: false
       expose: false
   brokerProperties:
+    - "addressSettings.#.autoCreateAddresses=true"
+    - "addressSettings.#.autoCreateQueues=true"
+    - "addressSettings.#.autoCreateJmsQueues=true"
+    - "addressSettings.#.autoCreateJmsTopics=true"
     - "AMQPConnections.toAmq2.uri=tcp://amq-amq2-mirror.amq-multicluster-skupper.svc:5672"
     - "AMQPConnections.toAmq2.user=admin"
     - "AMQPConnections.toAmq2.password=admin"
