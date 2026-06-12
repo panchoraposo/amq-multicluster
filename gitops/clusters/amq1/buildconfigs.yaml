@@ -1,0 +1,69 @@
+apiVersion: build.openshift.io/v1
+kind: BuildConfig
+metadata:
+  name: device-simulator
+  namespace: amq-multicluster
+spec:
+  runPolicy: Serial
+  source:
+    type: Git
+    git:
+      uri: https://github.com/panchoraposo/amq-multicluster.git
+      ref: main
+  strategy:
+    type: Docker
+    dockerStrategy:
+      dockerfilePath: apps/device-simulator/Dockerfile
+  output:
+    to:
+      kind: ImageStreamTag
+      name: device-simulator:latest
+  triggers:
+    - type: ConfigChange
+---
+apiVersion: build.openshift.io/v1
+kind: BuildConfig
+metadata:
+  name: event-consumer
+  namespace: amq-multicluster
+spec:
+  runPolicy: Serial
+  source:
+    type: Git
+    git:
+      uri: https://github.com/panchoraposo/amq-multicluster.git
+      ref: main
+  strategy:
+    type: Docker
+    dockerStrategy:
+      dockerfilePath: apps/event-consumer/Dockerfile
+  output:
+    to:
+      kind: ImageStreamTag
+      name: event-consumer:latest
+  triggers:
+    - type: ConfigChange
+---
+apiVersion: build.openshift.io/v1
+kind: BuildConfig
+metadata:
+  name: visualizer
+  namespace: amq-multicluster
+spec:
+  runPolicy: Serial
+  source:
+    type: Git
+    git:
+      uri: https://github.com/panchoraposo/amq-multicluster.git
+      ref: main
+  strategy:
+    type: Docker
+    dockerStrategy:
+      dockerfilePath: apps/visualizer/Dockerfile
+  output:
+    to:
+      kind: ImageStreamTag
+      name: visualizer:latest
+  triggers:
+    - type: ConfigChange
+
