@@ -94,9 +94,9 @@
     async function tick(site) {
       if (demoData) {
         demoCounters[site] += Math.floor(Math.random() * 10);
-        document.getElementById(`${site}-received`).textContent = demoCounters[site];
-        document.getElementById(`${site}-dup`).textContent = 0;
-        document.getElementById(`${site}-uptime`).textContent = "-";
+        document.getElementById(site + "-received").textContent = demoCounters[site];
+        document.getElementById(site + "-dup").textContent = 0;
+        document.getElementById(site + "-uptime").textContent = "-";
         return;
       }
 
@@ -106,11 +106,11 @@
         const res = await fetch(url, { cache: "no-store" });
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         const data = await res.json();
-        document.getElementById(`${site}-received`).textContent = data.received ?? "-";
-        document.getElementById(`${site}-dup`).textContent = data.duplicates ?? "-";
+        document.getElementById(site + "-received").textContent = data.received ?? "-";
+        document.getElementById(site + "-dup").textContent = data.duplicates ?? "-";
       } catch (e) {
-        document.getElementById(`${site}-received`).textContent = "err";
-        document.getElementById(`${site}-dup`).textContent = "err";
+        document.getElementById(site + "-received").textContent = "err";
+        document.getElementById(site + "-dup").textContent = "err";
       }
 
       try {
@@ -118,9 +118,9 @@
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         const data = await res.json();
         const ms = data?.value?.Uptime;
-        document.getElementById(`${site}-uptime`).textContent = (typeof ms === "number") ? `${Math.round(ms/1000)}s` : "-";
+        document.getElementById(site + "-uptime").textContent = (typeof ms === "number") ? `${Math.round(ms/1000)}s` : "-";
       } catch (e) {
-        document.getElementById(`${site}-uptime`).textContent = "-";
+        document.getElementById(site + "-uptime").textContent = "-";
       }
     }
 
