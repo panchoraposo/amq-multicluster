@@ -1,0 +1,12 @@
+apiVersion: skupper.io/v2alpha1
+kind: AccessGrant
+metadata:
+  name: grant-amq2
+  namespace: amq-multicluster-skupper
+  annotations:
+    argocd.argoproj.io/sync-wave: "21"
+    argocd.argoproj.io/sync-options: SkipDryRunOnMissingResource=true
+spec:
+  redemptionsAllowed: 1
+  expirationWindow: 2h
+

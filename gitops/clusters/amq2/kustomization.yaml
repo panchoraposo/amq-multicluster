@@ -21,6 +21,7 @@ resources:
   - amq-connectors.yaml
   - mqtt-connectors.yaml
   - amq-listeners.yaml
+  - access-grant.yaml
 
   # Filled by automation after AccessGrant is ready on amq1:
   # - access-token-to-amq1.yaml
