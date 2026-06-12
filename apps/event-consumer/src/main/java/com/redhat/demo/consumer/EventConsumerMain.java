@@ -48,7 +48,7 @@ public class EventConsumerMain implements QuarkusApplication {
   public interface MqttConfig {
     @WithDefault("") String host();
     @WithDefault("8883") int port();
-    @WithDefault("iot.events.v3") String topic();
+    @WithDefault("sensors/#") String topic();
     @WithDefault("true") boolean insecureTls();
     @WithDefault("amq1") String site();
   }
@@ -70,21 +70,28 @@ public class EventConsumerMain implements QuarkusApplication {
     String site();
   }
 
+  @ConfigMapping(prefix = "demo.queue")
+  public interface QueueConfig {
+    @WithDefault("queue.demo") String name();
+  }
+
   @Inject Vertx vertx;
   @Inject BrokerConfig cfg;
   @Inject MqttConfig mqtt;
-  @Inject ConsumerState state;
+  @Inject QueueConfig queue;
+  @Inject ConsumerStates states;
 
   @Override
   public int run(String... args) throws Exception {
-    // Prefer CORE consumption for stable demo counters; MQTT mode is kept as an optional alternative.
-    if (cfg.url() != null && !cfg.url().isBlank()) {
-      System.out.println("Consumer starting CORE site=" + cfg.site() + " queue=" + cfg.queue() + " url=" + cfg.url());
-      startCore();
-    } else if (mqtt.host() != null && !mqtt.host().isBlank()) {
-      System.out.println("Consumer starting MQTT site=" + mqtt.site() + " topic=" + mqtt.topic() + " host=" + mqtt.host() + ":" + mqtt.port());
+    if (mqtt.host() != null && !mqtt.host().isBlank()) {
+      System.out.println("Consumer starting MQTT (topic mode) site=" + mqtt.site() + " topic=" + mqtt.topic() + " host=" + mqtt.host() + ":" + mqtt.port());
       startMqtt();
-    } else {
+    }
+    if (cfg.url() != null && !cfg.url().isBlank()) {
+      System.out.println("Consumer starting CORE (queue mode) site=" + cfg.site() + " queue=" + queue.name() + " url=" + cfg.url());
+      startCoreQueue();
+    }
+    if ((mqtt.host() == null || mqtt.host().isBlank()) && (cfg.url() == null || cfg.url().isBlank())) {
       System.err.println("No demo.broker.url or demo.mqtt.host configured. Exiting.");
       return 2;
     }
@@ -127,7 +134,7 @@ public class EventConsumerMain implements QuarkusApplication {
       @Override
       public void messageArrived(String topic, MqttMessage message) throws Exception {
         String body = new String(message.getPayload(), StandardCharsets.UTF_8);
-        state.onPayload(body);
+        states.topic().onPayload(body);
       }
 
       @Override
@@ -139,7 +146,7 @@ public class EventConsumerMain implements QuarkusApplication {
     client.connect(opts);
   }
 
-  private void startCore() {
+  private void startCoreQueue() {
     vertx.executeBlocking(promise -> {
       long backoffMs = 1000;
       while (true) {
@@ -151,10 +158,10 @@ public class EventConsumerMain implements QuarkusApplication {
           locator = ActiveMQClient.createServerLocator(cfg.url());
           sf = locator.createSessionFactory();
           session = sf.createSession(cfg.username(), cfg.password(), false, true, true, locator.isHA(), 1);
-          consumer = session.createConsumer(cfg.queue());
+          consumer = session.createConsumer(queue.name());
           session.start();
 
-          System.out.println("CORE consuming queue=" + cfg.queue());
+          System.out.println("CORE consuming queue=" + queue.name());
           while (true) {
             ClientMessage msg = consumer.receive(1000);
             if (msg == null) {
@@ -164,7 +171,7 @@ public class EventConsumerMain implements QuarkusApplication {
               int size = Math.max(0, msg.getBodySize());
               byte[] data = new byte[size];
               msg.getBodyBuffer().readBytes(data);
-              state.onPayload(new String(data, StandardCharsets.UTF_8));
+              states.queue().onPayload(new String(data, StandardCharsets.UTF_8));
             } finally {
               msg.acknowledge();
             }
@@ -186,6 +193,8 @@ public class EventConsumerMain implements QuarkusApplication {
       }
     }, false);
   }
+
+  // NOTE: CORE consumption is now used specifically for queue(anycast) mode via startCoreQueue().
 
   private static SSLSocketFactory trustAllSocketFactory() throws Exception {
     TrustManager[] trustAll = new TrustManager[] {
@@ -233,7 +242,6 @@ public class EventConsumerMain implements QuarkusApplication {
     };
   }
 
-  @ApplicationScoped
   public static class ConsumerState {
     private final AtomicLong received = new AtomicLong();
     private final AtomicLong duplicates = new AtomicLong();
@@ -336,6 +344,29 @@ public class EventConsumerMain implements QuarkusApplication {
       synchronized (last) {
         last.clear();
       }
+    }
+  }
+
+  @ApplicationScoped
+  public static class ConsumerStates {
+    private final ConsumerState topic = new ConsumerState();
+    private final ConsumerState queue = new ConsumerState();
+
+    public ConsumerState topic() { return topic; }
+    public ConsumerState queue() { return queue; }
+
+    public ConsumerState byMode(String mode) {
+      if ("queue".equalsIgnoreCase(mode)) return queue;
+      return topic;
+    }
+
+    public void reset(String mode) {
+      if (mode == null || mode.isBlank() || "all".equalsIgnoreCase(mode)) {
+        topic.reset();
+        queue.reset();
+        return;
+      }
+      byMode(mode).reset();
     }
   }
 

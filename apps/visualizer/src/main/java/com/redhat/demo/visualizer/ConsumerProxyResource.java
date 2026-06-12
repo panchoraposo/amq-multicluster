@@ -6,6 +6,7 @@ import jakarta.ws.rs.GET;
 import jakarta.ws.rs.NotFoundException;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.Produces;
+import jakarta.ws.rs.QueryParam;
 import jakarta.ws.rs.core.MediaType;
 
 import java.net.URI;
@@ -35,7 +36,7 @@ public class ConsumerProxyResource {
 
   @GET
   @Path("/{site}/snapshot")
-  public String snapshot(@jakarta.ws.rs.PathParam("site") String site) throws Exception {
+  public String snapshot(@jakarta.ws.rs.PathParam("site") String site, @QueryParam("mode") String mode) throws Exception {
     String url = switch (site) {
       case "amq1" -> cfg.amq1SnapshotUrl();
       case "amq2" -> cfg.amq2SnapshotUrl();
@@ -44,6 +45,9 @@ public class ConsumerProxyResource {
     };
     if (url == null || url.isBlank()) {
       throw new NotFoundException("No consumer snapshot URL configured for " + site);
+    }
+    if (mode != null && !mode.isBlank()) {
+      url = url.contains("?") ? (url + "&mode=" + mode) : (url + "?mode=" + mode);
     }
 
     HttpRequest req = HttpRequest.newBuilder()

@@ -178,7 +178,7 @@
         <h3>Latest events</h3>
         <div class="row">
           <div class="mono" style="font-size:12px;color:var(--muted)">Latest payload per site (from <span class="mono">event-consumer</span>)</div>
-          <span class="tag mono" id="topicTag">iot/events/v4</span>
+          <span class="tag mono" id="topicTag">sensors/#</span>
         </div>
         <div class="events">
           <table><tbody id="events-tbody"></tbody></table>
@@ -510,7 +510,7 @@
 
     async function tickSite(site){
       try{
-        const r=await fetch("/api/consumer/"+site+"/snapshot",{cache:"no-store"});
+        const r=await fetch("/api/consumer/"+site+"/snapshot?mode="+encodeURIComponent(mode),{cache:"no-store"});
         if(!r.ok) throw new Error("HTTP "+r.status);
         return await r.json();
       }catch(e){
@@ -544,6 +544,7 @@
       mode=m;
       $("#btnTopic").classList.toggle("on", m==="topic");
       $("#btnQueue").classList.toggle("on", m==="queue");
+      $("#topicTag").textContent = (m==="queue") ? "queue.demo" : "sensors/#";
       updateModeHelp();
       toast(m==="topic" ? "Topic mode" : "Queue mode");
       drawPaths();
