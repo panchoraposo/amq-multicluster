@@ -79,7 +79,7 @@ metadata:
   annotations:
     argocd.argoproj.io/sync-wave: "42"
 spec:
-  replicas: 3
+  replicas: 0
   selector:
     matchLabels:
       app: device-simulator
@@ -96,7 +96,7 @@ spec:
             - containerPort: 1880
           env:
             - name: MQTT_SITE
-              value: amq2
+              value: onprem-disabled
             - name: MQTT_HOST
               value: amq-amq2-mqtts-lb.amq-multicluster-amq.svc
             - name: MQTT_PORT

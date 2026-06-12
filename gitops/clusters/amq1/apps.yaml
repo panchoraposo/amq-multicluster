@@ -96,9 +96,9 @@ spec:
             - containerPort: 1880
           env:
             - name: MQTT_SITE
-              value: amq1
+              value: onprem
             - name: MQTT_HOST
-              value: amq-amq1-mqtts-lb.amq-multicluster-amq.svc
+              value: onprem-mqtt-haproxy.amq-multicluster-edge.svc
             - name: MQTT_PORT
               value: "8883"
             - name: MQTT_USERNAME
