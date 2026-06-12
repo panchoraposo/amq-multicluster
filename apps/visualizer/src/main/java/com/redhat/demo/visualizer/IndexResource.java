@@ -63,6 +63,15 @@ public class IndexResource {
 
     @WithDefault("")
     String amq3ConsumerUrl();
+
+    @WithDefault("")
+    String amq1SimulatorUrl();
+
+    @WithDefault("")
+    String amq2SimulatorUrl();
+
+    @WithDefault("")
+    String amq3SimulatorUrl();
   }
 
   @ConfigMapping(prefix = "demo.consumers")
@@ -99,6 +108,9 @@ public class IndexResource {
       .data("amq1ConsumerUrl", links.amq1ConsumerUrl())
       .data("amq2ConsumerUrl", links.amq2ConsumerUrl())
       .data("amq3ConsumerUrl", links.amq3ConsumerUrl())
+      .data("amq1SimulatorUrl", links.amq1SimulatorUrl())
+      .data("amq2SimulatorUrl", links.amq2SimulatorUrl())
+      .data("amq3SimulatorUrl", links.amq3SimulatorUrl())
       .data("amq1SnapshotUrl", consumers.amq1SnapshotUrl())
       .data("amq2SnapshotUrl", consumers.amq2SnapshotUrl())
       .data("amq3SnapshotUrl", consumers.amq3SnapshotUrl())

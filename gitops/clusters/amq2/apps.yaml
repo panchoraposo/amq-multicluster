@@ -196,6 +196,12 @@ spec:
               value: http://event-consumer-amq-multicluster-apps.apps.cluster-2jph4.2jph4.sandbox5374.opentlc.com
             - name: DEMO_LINKS_AMQ3_CONSUMER_URL
               value: http://event-consumer-amq-multicluster-apps.apps.cluster-jtflv.jtflv.sandbox3540.opentlc.com
+            - name: DEMO_LINKS_AMQ1_SIMULATOR_URL
+              value: http://device-simulator-amq-multicluster-apps.apps.cluster-g4hb2.g4hb2.sandbox1269.opentlc.com
+            - name: DEMO_LINKS_AMQ2_SIMULATOR_URL
+              value: http://device-simulator-amq-multicluster-apps.apps.cluster-2jph4.2jph4.sandbox5374.opentlc.com
+            - name: DEMO_LINKS_AMQ3_SIMULATOR_URL
+              value: http://device-simulator-amq-multicluster-apps.apps.cluster-jtflv.jtflv.sandbox3540.opentlc.com
 ---
 apiVersion: v1
 kind: Service
