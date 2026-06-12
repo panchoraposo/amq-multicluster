@@ -122,6 +122,16 @@ public class EventConsumerMain implements QuarkusApplication {
       }
 
       String key = msg.getJMSMessageID();
+      if (body != null) {
+        int i = body.indexOf("\"eventId\":\"");
+        if (i >= 0) {
+          int start = i + "\"eventId\":\"".length();
+          int end = body.indexOf('"', start);
+          if (end > start) {
+            key = body.substring(start, end);
+          }
+        }
+      }
       if (key == null && body != null) {
         key = body;
       }

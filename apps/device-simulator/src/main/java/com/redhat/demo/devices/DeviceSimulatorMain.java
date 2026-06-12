@@ -106,7 +106,9 @@ public class DeviceSimulatorMain implements QuarkusApplication {
       long next = ++seq[deviceIdx];
       String deviceId = "device-" + (deviceIdx + 1);
       String topic = "iot/events";
+      String eventId = UUID.randomUUID().toString();
       String payload = "{\"site\":\"" + cfg.site() + "\"," +
+        "\"eventId\":\"" + eventId + "\"," +
         "\"deviceId\":\"" + deviceId + "\"," +
         "\"seq\":" + next + "," +
         "\"ts\":\"" + Instant.now() + "\"}";
