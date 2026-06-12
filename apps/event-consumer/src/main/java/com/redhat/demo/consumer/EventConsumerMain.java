@@ -64,9 +64,10 @@ public class EventConsumerMain implements QuarkusApplication {
         try {
           ConnectionFactory cf = new ActiveMQJMSConnectionFactory(coreUrl, cfg.username(), cfg.password());
           conn = cf.createConnection();
+          conn.setClientID("event-consumer-" + cfg.site());
           conn.start();
           session = conn.createSession(false, Session.CLIENT_ACKNOWLEDGE);
-          consumer = session.createConsumer(session.createQueue(cfg.queue()));
+          consumer = session.createDurableSubscriber(session.createTopic(cfg.queue()), "sub-" + cfg.site());
 
           System.out.println("Consumer connected site=" + cfg.site() + " queue=" + cfg.queue() + " url=" + coreUrl);
           backoffMs = 1000;
