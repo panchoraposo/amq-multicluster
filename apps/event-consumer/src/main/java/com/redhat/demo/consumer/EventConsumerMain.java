@@ -174,6 +174,9 @@ public class EventConsumerMain implements QuarkusApplication {
         return s;
       }
 
+      @Override public java.net.Socket createSocket() throws java.io.IOException {
+        return tweak(delegate.createSocket());
+      }
       @Override public java.net.Socket createSocket(java.net.Socket s, String host, int port, boolean autoClose) throws java.io.IOException {
         return tweak(delegate.createSocket(s, host, port, autoClose));
       }
