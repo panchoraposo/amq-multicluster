@@ -22,3 +22,12 @@ metadata:
   annotations:
     argocd.argoproj.io/sync-wave: "40"
 
+---
+apiVersion: image.openshift.io/v1
+kind: ImageStream
+metadata:
+  name: queue-producer
+  namespace: amq-multicluster-apps
+  annotations:
+    argocd.argoproj.io/sync-wave: "40"
+
