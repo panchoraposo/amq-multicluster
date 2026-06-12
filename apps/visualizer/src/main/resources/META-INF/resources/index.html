@@ -10,7 +10,7 @@
       --cardb:rgba(255,255,255,.09); --txt:#e8edf6; --muted:#8b97ad;
       --green:#3ddc84; --amber:#ffb020; --cyan:#38bdf8; --violet:#a78bfa;
       --shadow:0 10px 40px rgba(0,0,0,.45);
-      --amq1:{amq1Color}; --amq2:{amq2Color}; --amq3:{amq3Color};
+      --amq1:#2563eb; --amq2:#16a34a; --amq3:#a21caf;
     }
     *{box-sizing:border-box}
     html,body{margin:0;height:100%}
@@ -98,7 +98,7 @@
       <div class="mark">AMQ</div>
       <div>
         <h1>AMQ Broker · Multicluster</h1>
-        <p>Live visualizer (inspired by amq-broker-demo)</p>
+        <p>Live visualizer (style aligned to amq-broker-demo)</p>
       </div>
     </div>
     <div class="spacer"></div>
@@ -110,13 +110,13 @@
       <div class="stage" id="stage">
         <svg class="links" viewBox="0 0 1000 560" preserveAspectRatio="none">
           <!-- Local flows -->
-          <path id="p1" d="M130 120 C 210 120, 250 150, 300 170" stroke="rgba(56,189,248,.55)" stroke-width="3" fill="none" stroke-dasharray="10 8" class="flow"/>
-          <path id="p2" d="M500 120 C 580 120, 620 150, 670 170" stroke="rgba(56,189,248,.55)" stroke-width="3" fill="none" stroke-dasharray="10 8" class="flow"/>
-          <path id="p3" d="M870 120 C 790 120, 750 150, 700 170" stroke="rgba(56,189,248,.55)" stroke-width="3" fill="none" stroke-dasharray="10 8" class="flow"/>
+          <path d="M130 120 C 210 120, 250 150, 300 170" stroke="rgba(56,189,248,.55)" stroke-width="3" fill="none" stroke-dasharray="10 8" class="flow"/>
+          <path d="M500 120 C 580 120, 620 150, 670 170" stroke="rgba(56,189,248,.55)" stroke-width="3" fill="none" stroke-dasharray="10 8" class="flow"/>
+          <path d="M870 120 C 790 120, 750 150, 700 170" stroke="rgba(56,189,248,.55)" stroke-width="3" fill="none" stroke-dasharray="10 8" class="flow"/>
 
-          <path id="c1" d="M300 300 C 250 330, 210 360, 130 370" stroke="rgba(61,220,132,.50)" stroke-width="3" fill="none" stroke-dasharray="10 8" class="flow"/>
-          <path id="c2" d="M670 300 C 620 330, 580 360, 500 370" stroke="rgba(61,220,132,.50)" stroke-width="3" fill="none" stroke-dasharray="10 8" class="flow"/>
-          <path id="c3" d="M700 300 C 750 330, 790 360, 870 370" stroke="rgba(61,220,132,.50)" stroke-width="3" fill="none" stroke-dasharray="10 8" class="flow"/>
+          <path d="M300 300 C 250 330, 210 360, 130 370" stroke="rgba(61,220,132,.50)" stroke-width="3" fill="none" stroke-dasharray="10 8" class="flow"/>
+          <path d="M670 300 C 620 330, 580 360, 500 370" stroke="rgba(61,220,132,.50)" stroke-width="3" fill="none" stroke-dasharray="10 8" class="flow"/>
+          <path d="M700 300 C 750 330, 790 360, 870 370" stroke="rgba(61,220,132,.50)" stroke-width="3" fill="none" stroke-dasharray="10 8" class="flow"/>
 
           <!-- Mirror mesh -->
           <path d="M300 240 L 670 240" stroke="rgba(167,139,250,.35)" stroke-width="3" fill="none" stroke-dasharray="6 10" class="flow"/>
@@ -128,22 +128,22 @@
         <div class="node endpoint" style="left:130px;top:120px;">
           <div class="ic">🧩</div>
           <div class="lbl">Node-RED</div>
-          <div class="sub">{amq1Label}</div>
+          <div class="sub" id="amq1-label-top">AMQ1</div>
         </div>
         <div class="node endpoint" style="left:500px;top:120px;">
           <div class="ic">🧩</div>
           <div class="lbl">Node-RED</div>
-          <div class="sub">{amq2Label}</div>
+          <div class="sub" id="amq2-label-top">AMQ2</div>
         </div>
         <div class="node endpoint" style="left:870px;top:120px;">
           <div class="ic">🧩</div>
           <div class="lbl">Node-RED</div>
-          <div class="sub">{amq3Label}</div>
+          <div class="sub" id="amq3-label-top">AMQ3</div>
         </div>
 
         <!-- Brokers -->
         <div class="node broker" style="left:300px;top:240px;">
-          <div class="btop"><div class="bmark" style="background:var(--amq1)"></div><div><div class="btitle">{amq1Label}</div><div class="bmeta mono">amq1 · amq-multicluster-amq</div></div></div>
+          <div class="btop"><div class="bmark" id="amq1-dot" style="background:var(--amq1)"></div><div><div class="btitle" id="amq1-label-mid">AMQ1</div><div class="bmeta mono">amq1 · amq-multicluster-amq</div></div></div>
           <div class="kpis">
             <div class="kpi"><div class="n mono" id="amq1-received">-</div><div class="l">received</div></div>
             <div class="kpi"><div class="n mono" id="amq1-dup">-</div><div class="l">duplicates</div></div>
@@ -153,7 +153,7 @@
         </div>
 
         <div class="node broker" style="left:670px;top:240px;">
-          <div class="btop"><div class="bmark" style="background:var(--amq2)"></div><div><div class="btitle">{amq2Label}</div><div class="bmeta mono">amq2 · amq-multicluster-amq</div></div></div>
+          <div class="btop"><div class="bmark" id="amq2-dot" style="background:var(--amq2)"></div><div><div class="btitle" id="amq2-label-mid">AMQ2</div><div class="bmeta mono">amq2 · amq-multicluster-amq</div></div></div>
           <div class="kpis">
             <div class="kpi"><div class="n mono" id="amq2-received">-</div><div class="l">received</div></div>
             <div class="kpi"><div class="n mono" id="amq2-dup">-</div><div class="l">duplicates</div></div>
@@ -163,7 +163,7 @@
         </div>
 
         <div class="node broker" style="left:700px;top:240px;">
-          <div class="btop"><div class="bmark" style="background:var(--amq3)"></div><div><div class="btitle">{amq3Label}</div><div class="bmeta mono">amq3 · amq-multicluster-amq</div></div></div>
+          <div class="btop"><div class="bmark" id="amq3-dot" style="background:var(--amq3)"></div><div><div class="btitle" id="amq3-label-mid">AMQ3</div><div class="bmeta mono">amq3 · amq-multicluster-amq</div></div></div>
           <div class="kpis">
             <div class="kpi"><div class="n mono" id="amq3-received">-</div><div class="l">received</div></div>
             <div class="kpi"><div class="n mono" id="amq3-dup">-</div><div class="l">duplicates</div></div>
@@ -176,41 +176,31 @@
         <div class="node endpoint" style="left:130px;top:370px;">
           <div class="ic">📥</div>
           <div class="lbl">Consumer</div>
-          <div class="sub">{amq1Label}</div>
+          <div class="sub" id="amq1-label-bot">AMQ1</div>
         </div>
         <div class="node endpoint" style="left:500px;top:370px;">
           <div class="ic">📥</div>
           <div class="lbl">Consumer</div>
-          <div class="sub">{amq2Label}</div>
+          <div class="sub" id="amq2-label-bot">AMQ2</div>
         </div>
         <div class="node endpoint" style="left:870px;top:370px;">
           <div class="ic">📥</div>
           <div class="lbl">Consumer</div>
-          <div class="sub">{amq3Label}</div>
+          <div class="sub" id="amq3-label-bot">AMQ3</div>
         </div>
       </div>
     </div>
 
     <aside class="side">
       <h3>Quick links</h3>
-      <div class="links">
-        {#if amq1BrokerConsoleUrl}<a class="pill" href="{amq1BrokerConsoleUrl}" target="_blank" rel="noreferrer">{amq1Label} console</a>{/if}
-        {#if amq2BrokerConsoleUrl}<a class="pill" href="{amq2BrokerConsoleUrl}" target="_blank" rel="noreferrer">{amq2Label} console</a>{/if}
-        {#if amq3BrokerConsoleUrl}<a class="pill" href="{amq3BrokerConsoleUrl}" target="_blank" rel="noreferrer">{amq3Label} console</a>{/if}
-        {#if amq1ConsumerUrl}<a class="pill" href="{amq1ConsumerUrl}" target="_blank" rel="noreferrer">{amq1Label} consumer</a>{/if}
-        {#if amq2ConsumerUrl}<a class="pill" href="{amq2ConsumerUrl}" target="_blank" rel="noreferrer">{amq2Label} consumer</a>{/if}
-        {#if amq3ConsumerUrl}<a class="pill" href="{amq3ConsumerUrl}" target="_blank" rel="noreferrer">{amq3Label} consumer</a>{/if}
-        {#if amq1SimulatorUrl}<a class="pill" href="{amq1SimulatorUrl}" target="_blank" rel="noreferrer">{amq1Label} Node-RED</a>{/if}
-        {#if amq2SimulatorUrl}<a class="pill" href="{amq2SimulatorUrl}" target="_blank" rel="noreferrer">{amq2Label} Node-RED</a>{/if}
-        {#if amq3SimulatorUrl}<a class="pill" href="{amq3SimulatorUrl}" target="_blank" rel="noreferrer">{amq3Label} Node-RED</a>{/if}
-      </div>
+      <div class="links" id="quick-links"></div>
 
       <div class="events">
         <div class="row">
           <h3 style="margin:14px 0 6px">Latest events</h3>
-          <span class="tag">iot/events/v2</span>
+          <span class="tag">iot.events.v2</span>
         </div>
-        <div class="small">This panel shows the latest events seen by each consumer (via server-side proxy to avoid browser CORS).</div>
+        <div class="small">The browser reads only same-origin APIs; cross-cluster calls happen server-side (avoids CORS).</div>
         <table>
           <tbody id="events-tbody"></tbody>
         </table>
@@ -220,6 +210,7 @@
 
   <script>
     const sites = ["amq1","amq2","amq3"];
+    let ui = null;
 
     function setText(id, value) {
       const el = document.getElementById(id);
@@ -227,9 +218,71 @@
       el.textContent = value;
     }
 
+    function setVar(name, value) {
+      document.documentElement.style.setProperty(name, value);
+    }
+
     function fmtUptime(ms) {
       if (typeof ms !== "number") return "-";
       return Math.round(ms / 1000) + "s";
+    }
+
+    function safeHref(url) {
+      if (!url) return "";
+      return String(url);
+    }
+
+    function addLink(label, href) {
+      href = safeHref(href);
+      if (!href) return;
+      const a = document.createElement("a");
+      a.className = "pill";
+      a.href = href;
+      a.target = "_blank";
+      a.rel = "noreferrer";
+      a.textContent = label;
+      document.getElementById("quick-links").appendChild(a);
+    }
+
+    function applyUi() {
+      if (!ui) return;
+      setVar("--amq1", ui.amq1Color || "#2563eb");
+      setVar("--amq2", ui.amq2Color || "#16a34a");
+      setVar("--amq3", ui.amq3Color || "#a21caf");
+
+      setText("amq1-label-top", ui.amq1Label || "AMQ1");
+      setText("amq1-label-mid", ui.amq1Label || "AMQ1");
+      setText("amq1-label-bot", ui.amq1Label || "AMQ1");
+      setText("amq2-label-top", ui.amq2Label || "AMQ2");
+      setText("amq2-label-mid", ui.amq2Label || "AMQ2");
+      setText("amq2-label-bot", ui.amq2Label || "AMQ2");
+      setText("amq3-label-top", ui.amq3Label || "AMQ3");
+      setText("amq3-label-mid", ui.amq3Label || "AMQ3");
+      setText("amq3-label-bot", ui.amq3Label || "AMQ3");
+
+      const links = document.getElementById("quick-links");
+      links.innerHTML = "";
+
+      addLink((ui.amq1Label || "AMQ1") + " console", ui.amq1BrokerConsoleUrl);
+      addLink((ui.amq2Label || "AMQ2") + " console", ui.amq2BrokerConsoleUrl);
+      addLink((ui.amq3Label || "AMQ3") + " console", ui.amq3BrokerConsoleUrl);
+      addLink((ui.amq1Label || "AMQ1") + " consumer", ui.amq1ConsumerUrl);
+      addLink((ui.amq2Label || "AMQ2") + " consumer", ui.amq2ConsumerUrl);
+      addLink((ui.amq3Label || "AMQ3") + " consumer", ui.amq3ConsumerUrl);
+      addLink((ui.amq1Label || "AMQ1") + " Node-RED", ui.amq1SimulatorUrl);
+      addLink((ui.amq2Label || "AMQ2") + " Node-RED", ui.amq2SimulatorUrl);
+      addLink((ui.amq3Label || "AMQ3") + " Node-RED", ui.amq3SimulatorUrl);
+    }
+
+    async function loadUi() {
+      try {
+        const r = await fetch("/api/ui/config", { cache: "no-store" });
+        if (!r.ok) throw new Error("HTTP " + r.status);
+        ui = await r.json();
+        applyUi();
+      } catch (e) {
+        ui = null;
+      }
     }
 
     async function tickSite(site) {
@@ -270,9 +323,10 @@
         if (!last || !last.body) continue;
         let body = last.body;
         if (body.length > 120) body = body.slice(0, 120) + "...";
+        body = body.replaceAll("<","&lt;").replaceAll(">","&gt;");
         rows.push("<tr>" +
           "<td class=\"mono\">" + site + "</td>" +
-          "<td class=\"mono\">" + body.replaceAll("<","&lt;").replaceAll(">","&gt;") + "</td>" +
+          "<td class=\"mono\">" + body + "</td>" +
         "</tr>");
       }
       tb.innerHTML = rows.join("");
@@ -285,6 +339,8 @@
       renderEvents(snaps);
     }
 
+    loadUi();
+    setInterval(loadUi, 15000);
     loop();
     setInterval(loop, 1500);
   </script>
