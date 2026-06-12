@@ -2,7 +2,7 @@ apiVersion: skupper.io/v2alpha1
 kind: Listener
 metadata:
   name: amq-amq2-mirror
-  namespace: amq-multicluster
+  namespace: amq-multicluster-skupper
   annotations:
     argocd.argoproj.io/sync-wave: "23"
     argocd.argoproj.io/sync-options: SkipDryRunOnMissingResource=true
@@ -15,7 +15,7 @@ apiVersion: skupper.io/v2alpha1
 kind: Listener
 metadata:
   name: amq-amq3-mirror
-  namespace: amq-multicluster
+  namespace: amq-multicluster-skupper
   annotations:
     argocd.argoproj.io/sync-wave: "23"
     argocd.argoproj.io/sync-options: SkipDryRunOnMissingResource=true

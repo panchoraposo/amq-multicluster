@@ -2,10 +2,10 @@ apiVersion: operators.coreos.com/v1
 kind: OperatorGroup
 metadata:
   name: amq-broker-operatorgroup
-  namespace: amq-multicluster
+  namespace: amq-multicluster-amq
   annotations:
     argocd.argoproj.io/sync-wave: "-29"
 spec:
   targetNamespaces:
-    - amq-multicluster
+    - amq-multicluster-amq
 

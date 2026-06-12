@@ -2,7 +2,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: event-consumer
-  namespace: amq-multicluster
+  namespace: amq-multicluster-apps
 spec:
   replicas: 1
   selector:
@@ -15,13 +15,13 @@ spec:
     spec:
       containers:
         - name: app
-          image: image-registry.openshift-image-registry.svc:5000/amq-multicluster/event-consumer:latest
+          image: image-registry.openshift-image-registry.svc:5000/amq-multicluster-apps/event-consumer:latest
           imagePullPolicy: Always
           ports:
             - containerPort: 8081
           env:
             - name: DEMO_BROKER_URL
-              value: (tcp://amq-amq3-ss-0.amq-amq3-hdls-svc:61616,tcp://amq-amq3-ss-1.amq-amq3-hdls-svc:61616)?ha=true&reconnectAttempts=-1&retryInterval=1000&retryIntervalMultiplier=1.0
+              value: (tcp://amq-amq3-ss-0.amq-amq3-hdls-svc.amq-multicluster-amq.svc:61616,tcp://amq-amq3-ss-1.amq-amq3-hdls-svc.amq-multicluster-amq.svc:61616)?ha=true&reconnectAttempts=-1&retryInterval=1000&retryIntervalMultiplier=1.0
             - name: DEMO_BROKER_QUEUE
               value: iot.events.v2
             - name: DEMO_BROKER_SITE
@@ -31,7 +31,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: event-consumer
-  namespace: amq-multicluster
+  namespace: amq-multicluster-apps
 spec:
   selector:
     app: event-consumer
@@ -44,7 +44,7 @@ apiVersion: route.openshift.io/v1
 kind: Route
 metadata:
   name: event-consumer
-  namespace: amq-multicluster
+  namespace: amq-multicluster-apps
 spec:
   to:
     kind: Service
@@ -56,9 +56,9 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: device-simulator
-  namespace: amq-multicluster
+  namespace: amq-multicluster-apps
 spec:
-  replicas: 1
+  replicas: 3
   selector:
     matchLabels:
       app: device-simulator
@@ -67,51 +67,33 @@ spec:
       labels:
         app: device-simulator
     spec:
-      volumes:
-        - name: mqtt-tls
-          secret:
-            secretName: amq-tls-mqtt
       containers:
         - name: app
-          image: image-registry.openshift-image-registry.svc:5000/amq-multicluster/device-simulator:latest
+          image: image-registry.openshift-image-registry.svc:5000/amq-multicluster-apps/device-simulator:latest
           imagePullPolicy: Always
-          volumeMounts:
-            - name: mqtt-tls
-              mountPath: /etc/mqtt
-              readOnly: true
           env:
-            - name: DEMO_MQTT_SITE
+            - name: MQTT_SITE
               value: amq3
-            - name: DEMO_MQTT_HOST
-              value: amq-amq3-mqtts-0-svc
-            - name: DEMO_MQTT_PORT
+            - name: MQTT_HOST
+              value: amq-amq3-mqtts-0-svc.amq-multicluster-amq.svc
+            - name: MQTT_PORT
               value: "8883"
-            - name: DEMO_MQTT_TLS
-              value: "true"
-            - name: DEMO_MQTT_USERNAME
+            - name: MQTT_USERNAME
               value: admin
-            - name: DEMO_MQTT_PASSWORD
+            - name: MQTT_PASSWORD
               value: admin
-            - name: DEMO_MQTT_TRUST_STORE_PATH
-              value: /etc/mqtt/client.ts
-            - name: DEMO_MQTT_TRUST_STORE_PASSWORD
-              value: amqdemo
-            - name: DEMO_MQTT_KEY_STORE_PATH
-              value: /etc/mqtt/broker.ks
-            - name: DEMO_MQTT_KEY_STORE_PASSWORD
-              value: amqdemo
-            - name: DEMO_MQTT_TRUST_ALL
-              value: "true"
-            - name: DEMO_MQTT_DEVICE_COUNT
-              value: "25"
-            - name: DEMO_MQTT_INTERVAL_MS
+            - name: MQTT_TOPIC
+              value: iot/events/v2
+            - name: DEVICE_COUNT
+              value: "50"
+            - name: MQTT_INTERVAL_MS
               value: "200"
 ---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: visualizer
-  namespace: amq-multicluster
+  namespace: amq-multicluster-apps
 spec:
   replicas: 1
   selector:
@@ -124,11 +106,15 @@ spec:
     spec:
       containers:
         - name: app
-          image: image-registry.openshift-image-registry.svc:5000/amq-multicluster/visualizer:latest
+          image: image-registry.openshift-image-registry.svc:5000/amq-multicluster-apps/visualizer:latest
           imagePullPolicy: Always
           ports:
             - containerPort: 8080
           env:
+            - name: DEMO_UI_BANNER_LABEL
+              value: AMQ3
+            - name: DEMO_UI_BANNER_COLOR
+              value: "#a21caf"
             - name: DEMO_UI_AMQ1_LABEL
               value: AMQ1
             - name: DEMO_UI_AMQ1_COLOR
@@ -142,9 +128,9 @@ spec:
             - name: DEMO_UI_AMQ3_COLOR
               value: "#a21caf"
             - name: DEMO_CONSUMERS_AMQ1_SNAPSHOT_URL
-              value: http://event-consumer-amq-multicluster.apps.cluster-g4hb2.g4hb2.sandbox1269.opentlc.com/api/snapshot
+              value: http://event-consumer-amq-multicluster-apps.apps.cluster-g4hb2.g4hb2.sandbox1269.opentlc.com/api/snapshot
             - name: DEMO_CONSUMERS_AMQ2_SNAPSHOT_URL
-              value: http://event-consumer-amq-multicluster.apps.cluster-2jph4.2jph4.sandbox5374.opentlc.com/api/snapshot
+              value: http://event-consumer-amq-multicluster-apps.apps.cluster-2jph4.2jph4.sandbox5374.opentlc.com/api/snapshot
             - name: DEMO_CONSUMERS_AMQ3_SNAPSHOT_URL
               value: http://event-consumer:8081/api/snapshot
             - name: DEMO_JOLOKIA_AMQ1_BASE_URL
@@ -152,17 +138,29 @@ spec:
             - name: DEMO_JOLOKIA_AMQ2_BASE_URL
               value: http://amq-amq2-wconsj-0-svc-rte-amq-multicluster.apps.cluster-2jph4.2jph4.sandbox5374.opentlc.com/console/jolokia
             - name: DEMO_JOLOKIA_AMQ3_BASE_URL
-              value: http://amq-amq3-wconsj-0-svc:8161/console/jolokia
+              value: http://amq-amq3-wconsj-0-svc.amq-multicluster-amq.svc:8161/console/jolokia
             - name: DEMO_JOLOKIA_USERNAME
               value: admin
             - name: DEMO_JOLOKIA_PASSWORD
               value: admin
+            - name: DEMO_LINKS_AMQ1_BROKER_CONSOLE_URL
+              value: http://amq-amq1-wconsj-0-svc-rte-amq-multicluster.apps.cluster-g4hb2.g4hb2.sandbox1269.opentlc.com
+            - name: DEMO_LINKS_AMQ2_BROKER_CONSOLE_URL
+              value: http://amq-amq2-wconsj-0-svc-rte-amq-multicluster.apps.cluster-2jph4.2jph4.sandbox5374.opentlc.com
+            - name: DEMO_LINKS_AMQ3_BROKER_CONSOLE_URL
+              value: http://amq-amq3-wconsj-0-svc-rte-amq-multicluster.apps.cluster-jtflv.jtflv.sandbox3540.opentlc.com
+            - name: DEMO_LINKS_AMQ1_CONSUMER_URL
+              value: http://event-consumer-amq-multicluster-apps.apps.cluster-g4hb2.g4hb2.sandbox1269.opentlc.com
+            - name: DEMO_LINKS_AMQ2_CONSUMER_URL
+              value: http://event-consumer-amq-multicluster-apps.apps.cluster-2jph4.2jph4.sandbox5374.opentlc.com
+            - name: DEMO_LINKS_AMQ3_CONSUMER_URL
+              value: http://event-consumer-amq-multicluster-apps.apps.cluster-jtflv.jtflv.sandbox3540.opentlc.com
 ---
 apiVersion: v1
 kind: Service
 metadata:
   name: visualizer
-  namespace: amq-multicluster
+  namespace: amq-multicluster-apps
 spec:
   selector:
     app: visualizer
@@ -175,7 +173,7 @@ apiVersion: route.openshift.io/v1
 kind: Route
 metadata:
   name: visualizer
-  namespace: amq-multicluster
+  namespace: amq-multicluster-apps
 spec:
   to:
     kind: Service

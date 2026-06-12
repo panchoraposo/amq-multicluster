@@ -83,7 +83,7 @@
 
     - name: Wait for Skupper Site CR to be Ready (all contexts)
       ansible.builtin.command: >
-        oc --context {{ item }} -n amq-multicluster
+        oc --context {{ item }} -n amq-multicluster-skupper
         get site {{ item }} -o jsonpath='{.status.status}'
       register: skupper_site_status
       retries: 120
@@ -94,7 +94,7 @@
 
     - name: Wait for AccessGrant on grant_context to be Ready
       ansible.builtin.command: >
-        oc --context {{ grant_context }} -n amq-multicluster
+        oc --context {{ grant_context }} -n amq-multicluster-skupper
         get accessgrant grant-{{ grant_context }} -o jsonpath='{.status.status}'
       register: grant_ready
       retries: 120
@@ -104,7 +104,7 @@
 
     - name: Read AccessGrant token fields (url/code/ca)
       ansible.builtin.command: >
-        oc --context {{ grant_context }} -n amq-multicluster
+        oc --context {{ grant_context }} -n amq-multicluster-skupper
         get accessgrant grant-{{ grant_context }} -o jsonpath='{.status.{{ item }}}'
       loop:
         - url
@@ -115,7 +115,7 @@
 
     - name: Apply AccessToken to link other sites to grant_context
       ansible.builtin.command: >
-        oc --context {{ item }} -n amq-multicluster apply -f -
+        oc --context {{ item }} -n amq-multicluster-skupper apply -f -
       args:
         stdin: |
           apiVersion: skupper.io/v2alpha1

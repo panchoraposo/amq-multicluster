@@ -2,7 +2,7 @@ apiVersion: skupper.io/v2alpha1
 kind: Site
 metadata:
   name: amq1
-  namespace: amq-multicluster
+  namespace: amq-multicluster-skupper
   annotations:
     argocd.argoproj.io/sync-wave: "20"
     argocd.argoproj.io/sync-options: SkipDryRunOnMissingResource=true

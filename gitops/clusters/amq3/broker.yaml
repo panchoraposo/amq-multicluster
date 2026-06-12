@@ -2,7 +2,7 @@ apiVersion: broker.amq.io/v1beta1
 kind: ActiveMQArtemis
 metadata:
   name: amq-amq3
-  namespace: amq-multicluster
+  namespace: amq-multicluster-amq
   annotations:
     argocd.argoproj.io/sync-wave: "10"
 spec:
@@ -30,7 +30,7 @@ spec:
       sslEnabled: false
       expose: false
   brokerProperties:
-    - "AMQPConnections.toAmq1.uri=tcp://amq-amq1-mirror:5672"
+    - "AMQPConnections.toAmq1.uri=tcp://amq-amq1-mirror.amq-multicluster-skupper.svc:5672"
     - "AMQPConnections.toAmq1.user=admin"
     - "AMQPConnections.toAmq1.password=admin"
     - "AMQPConnections.toAmq1.retryInterval=5000"
@@ -38,7 +38,7 @@ spec:
     - "AMQPConnections.toAmq1.connectionElements.mirror.messageAcknowledgements=true"
     - "AMQPConnections.toAmq1.connectionElements.mirror.queueCreation=true"
     - "AMQPConnections.toAmq1.connectionElements.mirror.queueRemoval=true"
-    - "AMQPConnections.toAmq2.uri=tcp://amq-amq2-mirror:5672"
+    - "AMQPConnections.toAmq2.uri=tcp://amq-amq2-mirror.amq-multicluster-skupper.svc:5672"
     - "AMQPConnections.toAmq2.user=admin"
     - "AMQPConnections.toAmq2.password=admin"
     - "AMQPConnections.toAmq2.retryInterval=5000"

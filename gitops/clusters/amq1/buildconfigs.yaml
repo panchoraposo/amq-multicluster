@@ -2,7 +2,7 @@ apiVersion: build.openshift.io/v1
 kind: BuildConfig
 metadata:
   name: device-simulator
-  namespace: amq-multicluster
+  namespace: amq-multicluster-apps
 spec:
   runPolicy: Serial
   source:
@@ -13,7 +13,7 @@ spec:
   strategy:
     type: Docker
     dockerStrategy:
-      dockerfilePath: apps/device-simulator/Dockerfile
+      dockerfilePath: apps/device-simulator-nodered/Dockerfile
   output:
     to:
       kind: ImageStreamTag
@@ -25,7 +25,7 @@ apiVersion: build.openshift.io/v1
 kind: BuildConfig
 metadata:
   name: event-consumer
-  namespace: amq-multicluster
+  namespace: amq-multicluster-apps
 spec:
   runPolicy: Serial
   source:
@@ -48,7 +48,7 @@ apiVersion: build.openshift.io/v1
 kind: BuildConfig
 metadata:
   name: visualizer
-  namespace: amq-multicluster
+  namespace: amq-multicluster-apps
 spec:
   runPolicy: Serial
   source:

@@ -2,17 +2,17 @@ apiVersion: image.openshift.io/v1
 kind: ImageStream
 metadata:
   name: device-simulator
-  namespace: amq-multicluster
+  namespace: amq-multicluster-apps
 ---
 apiVersion: image.openshift.io/v1
 kind: ImageStream
 metadata:
   name: event-consumer
-  namespace: amq-multicluster
+  namespace: amq-multicluster-apps
 ---
 apiVersion: image.openshift.io/v1
 kind: ImageStream
 metadata:
   name: visualizer
-  namespace: amq-multicluster
+  namespace: amq-multicluster-apps
 
