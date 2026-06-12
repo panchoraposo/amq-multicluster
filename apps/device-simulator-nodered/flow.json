@@ -30,7 +30,7 @@
     "type": "function",
     "z": "f1a2b3c4d5e6f7a8",
     "name": "generate event",
-    "func": "const site = env.get(\"MQTT_SITE\") || \"amq1\";\nconst topic = env.get(\"MQTT_TOPIC\") || \"iot.events.v3\";\nconst deviceCount = parseInt(env.get(\"DEVICE_COUNT\") || \"25\", 10);\nconst pod = env.get(\"HOSTNAME\") || \"nodered\";\n\nlet seq = context.get(\"seq\") || {};\nconst idx = Math.floor(Math.random() * deviceCount) + 1;\nconst deviceId = `device-${idx}`;\nseq[deviceId] = (seq[deviceId] || 0) + 1;\ncontext.set(\"seq\", seq);\n\nconst eventId = `${Date.now().toString(36)}-${pod}-${Math.random().toString(36).slice(2)}`;\n\nmsg.topic = topic;\nmsg.payload = {\n  site,\n  eventId,\n  deviceId,\n  seq: seq[deviceId],\n  ts: new Date().toISOString()\n};\n\nreturn msg;",
+    "func": "const site = env.get(\"MQTT_SITE\") || \"amq1\";\nconst topic = env.get(\"MQTT_TOPIC\") || \"iot.events.v3\";\nconst deviceCount = parseInt(env.get(\"DEVICE_COUNT\") || \"25\", 10);\nconst pod = env.get(\"HOSTNAME\") || \"nodered\";\n\nlet seq = context.get(\"seq\") || {};\nconst idx = Math.floor(Math.random() * deviceCount) + 1;\nconst deviceId = `device-${idx}`;\nseq[deviceId] = (seq[deviceId] || 0) + 1;\ncontext.set(\"seq\", seq);\n\nconst eventId = `${Date.now().toString(36)}-${pod}-${Math.random().toString(36).slice(2)}`;\n\nmsg.topic = topic;\nmsg.payload = {\n  site,\n  eventId,\n  deviceId,\n  seq: seq[deviceId],\n  ts: new Date().toISOString()\n};\n\nnode.warn(\"publish \" + topic + \" eventId=\" + eventId);\nreturn msg;",
     "outputs": 1,
     "noerr": 0,
     "initialize": "",
