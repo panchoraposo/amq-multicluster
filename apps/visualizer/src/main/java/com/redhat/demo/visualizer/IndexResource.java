@@ -7,6 +7,8 @@ import io.smallrye.config.WithDefault;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.Path;
+import jakarta.ws.rs.Produces;
+import jakarta.ws.rs.core.MediaType;
 
 @Path("/")
 public class IndexResource {
@@ -80,7 +82,8 @@ public class IndexResource {
   @Inject LinksConfig links;
 
   @GET
-  public TemplateInstance home() {
+  @Produces(MediaType.TEXT_HTML)
+  public String home() {
     return index
       .data("bannerLabel", cfg.bannerLabel())
       .data("bannerColor", cfg.bannerColor())
@@ -98,7 +101,8 @@ public class IndexResource {
       .data("amq3ConsumerUrl", links.amq3ConsumerUrl())
       .data("amq1SnapshotUrl", consumers.amq1SnapshotUrl())
       .data("amq2SnapshotUrl", consumers.amq2SnapshotUrl())
-      .data("amq3SnapshotUrl", consumers.amq3SnapshotUrl());
+      .data("amq3SnapshotUrl", consumers.amq3SnapshotUrl())
+      .render();
   }
 }
 
