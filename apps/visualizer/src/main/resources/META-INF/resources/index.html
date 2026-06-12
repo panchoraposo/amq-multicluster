@@ -236,13 +236,13 @@
 
     const ANCHORS = {
       // sensors (on-prem)
-      dev1:{x:.08,y:.08},
-      dev2:{x:.16,y:.13},
-      dev3:{x:.08,y:.18},
+      dev1:{x:.06,y:.08},
+      dev2:{x:.16,y:.07},
+      dev3:{x:.16,y:.19},
       onprem:{x:.32,y:.16}, // HAProxy ingress for on-prem devices (AMQ1/AMQ2)
       // sensors (public cloud side)
-      cdev1:{x:.66,y:.08},
-      cdev2:{x:.74,y:.16},
+      cdev1:{x:.62,y:.08},
+      cdev2:{x:.72,y:.19},
       cloud:{x:.82,y:.12},  // Public Cloud endpoint (AMQ3 ingest)
       br1:{x:.18,y:.52}, br2:{x:.50,y:.52}, br3:{x:.82,y:.52},
       con1:{x:.18,y:.84}, con2:{x:.50,y:.84},
@@ -318,9 +318,9 @@
       const online = !!snap || (healthy && healthy.online);
       const stCls = online ? "online" : "offline";
       const stTxt = online ? "online" : "offline";
-      const received = online ? (snap.received ?? 0) : 0;
-      const dup = online ? (snap.duplicates ?? 0) : 0;
-      const last = online && snap.last && snap.last.length ? snap.last[0] : null;
+      const received = snap ? (snap.received ?? 0) : 0;
+      const dup = snap ? (snap.duplicates ?? 0) : 0;
+      const last = snap && snap.last && snap.last.length ? snap.last[0] : null;
       const lastId = last && last.body && String(last.body).includes("\"eventId\"") ? "ok" : "-";
 
       const bs = brokerStats[site] || null;
@@ -713,7 +713,7 @@
           brokerHealth[site] = hs;
           okAny = okAny || true;
         } else {
-          brokerHealth[site] = brokerHealth[site] || null;
+          brokerHealth[site] = null;
         }
       });
       updateConn(okAny);
