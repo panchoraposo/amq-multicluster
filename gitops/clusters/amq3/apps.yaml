@@ -144,9 +144,9 @@ spec:
             - name: DEMO_CONSUMERS_AMQ3_SNAPSHOT_URL
               value: http://event-consumer:8081/api/snapshot
             - name: DEMO_JOLOKIA_AMQ1_BASE_URL
-              value: http://amq-amq1-wconsj-0-svc-rte-amq-multicluster.apps.cluster-g4hb2.g4hb2.sandbox1269.opentlc.com/console/jolokia
+              value: http://amq-amq1-wconsj-0-svc-rte-amq-multicluster-amq.apps.cluster-g4hb2.g4hb2.sandbox1269.opentlc.com/console/jolokia
             - name: DEMO_JOLOKIA_AMQ2_BASE_URL
-              value: http://amq-amq2-wconsj-0-svc-rte-amq-multicluster.apps.cluster-2jph4.2jph4.sandbox5374.opentlc.com/console/jolokia
+              value: http://amq-amq2-wconsj-0-svc-rte-amq-multicluster-amq.apps.cluster-2jph4.2jph4.sandbox5374.opentlc.com/console/jolokia
             - name: DEMO_JOLOKIA_AMQ3_BASE_URL
               value: http://amq-amq3-wconsj-0-svc.amq-multicluster-amq.svc:8161/console/jolokia
             - name: DEMO_JOLOKIA_USERNAME
@@ -154,11 +154,11 @@ spec:
             - name: DEMO_JOLOKIA_PASSWORD
               value: admin
             - name: DEMO_LINKS_AMQ1_BROKER_CONSOLE_URL
-              value: http://amq-amq1-wconsj-0-svc-rte-amq-multicluster.apps.cluster-g4hb2.g4hb2.sandbox1269.opentlc.com
+              value: http://amq-amq1-wconsj-0-svc-rte-amq-multicluster-amq.apps.cluster-g4hb2.g4hb2.sandbox1269.opentlc.com
             - name: DEMO_LINKS_AMQ2_BROKER_CONSOLE_URL
-              value: http://amq-amq2-wconsj-0-svc-rte-amq-multicluster.apps.cluster-2jph4.2jph4.sandbox5374.opentlc.com
+              value: http://amq-amq2-wconsj-0-svc-rte-amq-multicluster-amq.apps.cluster-2jph4.2jph4.sandbox5374.opentlc.com
             - name: DEMO_LINKS_AMQ3_BROKER_CONSOLE_URL
-              value: http://amq-amq3-wconsj-0-svc-rte-amq-multicluster.apps.cluster-jtflv.jtflv.sandbox3540.opentlc.com
+              value: http://amq-amq3-wconsj-0-svc-rte-amq-multicluster-amq.apps.cluster-jtflv.jtflv.sandbox3540.opentlc.com
             - name: DEMO_LINKS_AMQ1_CONSUMER_URL
               value: http://event-consumer-amq-multicluster-apps.apps.cluster-g4hb2.g4hb2.sandbox1269.opentlc.com
             - name: DEMO_LINKS_AMQ2_CONSUMER_URL
