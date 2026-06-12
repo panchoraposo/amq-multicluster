@@ -11,7 +11,7 @@ spec:
     path: gitops/clusters/amq1
   destination:
     server: https://kubernetes.default.svc
-    namespace: amq-multicluster
+    namespace: amq-multicluster-apps
   syncPolicy:
     automated:
       prune: true
