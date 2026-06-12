@@ -52,7 +52,7 @@ public class EventConsumerMain implements QuarkusApplication {
 
   @Override
   public int run(String... args) throws Exception {
-    String coreUrl = "tcp://" + cfg.url();
+    String coreUrl = cfg.url();
     System.out.println("Consumer starting site=" + cfg.site() + " queue=" + cfg.queue() + " url=" + coreUrl);
 
     vertx.executeBlocking(promise -> {
