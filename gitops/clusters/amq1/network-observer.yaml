@@ -5,6 +5,7 @@ metadata:
   namespace: amq-multicluster-skupper
   annotations:
     argocd.argoproj.io/sync-wave: "30"
+    argocd.argoproj.io/sync-options: SkipDryRunOnMissingResource=true
 spec:
   auth:
     strategy: openshift
