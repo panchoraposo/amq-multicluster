@@ -96,6 +96,10 @@ spec:
               value: /etc/mqtt/client.ts
             - name: DEMO_MQTT_TRUST_STORE_PASSWORD
               value: amqdemo
+            - name: DEMO_MQTT_KEY_STORE_PATH
+              value: /etc/mqtt/broker.ks
+            - name: DEMO_MQTT_KEY_STORE_PASSWORD
+              value: amqdemo
             - name: DEMO_MQTT_DEVICE_COUNT
               value: "25"
             - name: DEMO_MQTT_INTERVAL_MS
@@ -138,15 +142,15 @@ spec:
             - name: DEMO_CONSUMERS_AMQ1_SNAPSHOT_URL
               value: http://event-consumer:8081/api/snapshot
             - name: DEMO_CONSUMERS_AMQ2_SNAPSHOT_URL
-              value: ""
+              value: http://event-consumer:8081/api/snapshot
             - name: DEMO_CONSUMERS_AMQ3_SNAPSHOT_URL
-              value: ""
+              value: http://event-consumer:8081/api/snapshot
             - name: DEMO_JOLOKIA_AMQ1_BASE_URL
               value: http://amq-amq1-wconsj-0-svc:8161/console/jolokia
             - name: DEMO_JOLOKIA_AMQ2_BASE_URL
-              value: ""
+              value: http://amq-amq1-wconsj-0-svc:8161/console/jolokia
             - name: DEMO_JOLOKIA_AMQ3_BASE_URL
-              value: ""
+              value: http://amq-amq1-wconsj-0-svc:8161/console/jolokia
             - name: DEMO_JOLOKIA_USERNAME
               value: admin
             - name: DEMO_JOLOKIA_PASSWORD
