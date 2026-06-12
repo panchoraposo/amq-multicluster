@@ -3,6 +3,8 @@ kind: ActiveMQArtemis
 metadata:
   name: amq-amq2
   namespace: amq-multicluster
+  annotations:
+    argocd.argoproj.io/sync-wave: "10"
 spec:
   deploymentPlan:
     size: 2

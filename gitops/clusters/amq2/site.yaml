@@ -3,4 +3,6 @@ kind: Site
 metadata:
   name: amq2
   namespace: amq-multicluster
+  annotations:
+    argocd.argoproj.io/sync-wave: "20"
 

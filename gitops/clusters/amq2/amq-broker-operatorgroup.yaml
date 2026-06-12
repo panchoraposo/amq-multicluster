@@ -3,6 +3,8 @@ kind: OperatorGroup
 metadata:
   name: amq-broker-operatorgroup
   namespace: amq-multicluster
+  annotations:
+    argocd.argoproj.io/sync-wave: "-29"
 spec:
   targetNamespaces:
     - amq-multicluster

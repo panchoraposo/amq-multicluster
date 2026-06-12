@@ -3,6 +3,8 @@ kind: Listener
 metadata:
   name: amq-amq2-mirror
   namespace: amq-multicluster
+  annotations:
+    argocd.argoproj.io/sync-wave: "23"
 spec:
   routingKey: amq-amq2-mirror
   host: amq-amq2-mirror
@@ -13,6 +15,8 @@ kind: Listener
 metadata:
   name: amq-amq3-mirror
   namespace: amq-multicluster
+  annotations:
+    argocd.argoproj.io/sync-wave: "23"
 spec:
   routingKey: amq-amq3-mirror
   host: amq-amq3-mirror

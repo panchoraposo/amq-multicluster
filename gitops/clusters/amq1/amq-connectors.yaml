@@ -3,6 +3,8 @@ kind: Connector
 metadata:
   name: amq-amq1-mirror
   namespace: amq-multicluster
+  annotations:
+    argocd.argoproj.io/sync-wave: "22"
 spec:
   routingKey: amq-amq1-mirror
   selector: ActiveMQArtemis=amq-amq1
