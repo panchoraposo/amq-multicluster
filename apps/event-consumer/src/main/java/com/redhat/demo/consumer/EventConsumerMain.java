@@ -8,16 +8,16 @@ import io.vertx.core.Vertx;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 
-import javax.jms.Connection;
-import javax.jms.ConnectionFactory;
 import javax.jms.BytesMessage;
 import javax.jms.Message;
-import javax.jms.MessageConsumer;
-import javax.jms.Session;
 import javax.jms.TextMessage;
 
-import org.apache.activemq.artemis.jms.client.ActiveMQJMSConnectionFactory;
-import org.apache.activemq.artemis.jms.client.ActiveMQTopic;
+import org.eclipse.paho.client.mqttv3.IMqttDeliveryToken;
+import org.eclipse.paho.client.mqttv3.MqttCallbackExtended;
+import org.eclipse.paho.client.mqttv3.MqttClient;
+import org.eclipse.paho.client.mqttv3.MqttConnectOptions;
+import org.eclipse.paho.client.mqttv3.MqttMessage;
+import org.eclipse.paho.client.mqttv3.persist.MemoryPersistence;
 
 import java.time.Instant;
 import java.util.ArrayDeque;
@@ -26,9 +26,24 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
 import java.nio.charset.StandardCharsets;
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.SSLSocketFactory;
+import javax.net.ssl.TrustManager;
+import javax.net.ssl.X509TrustManager;
+import java.security.SecureRandom;
+import java.security.cert.X509Certificate;
 
 @QuarkusMain
 public class EventConsumerMain implements QuarkusApplication {
+
+  @ConfigMapping(prefix = "demo.mqtt")
+  public interface MqttConfig {
+    @WithDefault("") String host();
+    @WithDefault("8883") int port();
+    @WithDefault("iot.events.v3") String topic();
+    @WithDefault("true") boolean insecureTls();
+    @WithDefault("amq1") String site();
+  }
 
   @ConfigMapping(prefix = "demo.broker")
   public interface BrokerConfig {
@@ -49,39 +64,28 @@ public class EventConsumerMain implements QuarkusApplication {
 
   @Inject Vertx vertx;
   @Inject BrokerConfig cfg;
+  @Inject MqttConfig mqtt;
   @Inject ConsumerState state;
 
   @Override
   public int run(String... args) throws Exception {
+    if (mqtt.host() != null && !mqtt.host().isBlank()) {
+      System.out.println("Consumer starting MQTT site=" + mqtt.site() + " topic=" + mqtt.topic() + " host=" + mqtt.host() + ":" + mqtt.port());
+      startMqtt();
+      Thread.currentThread().join();
+      return 0;
+    }
+
+    // Legacy JMS mode (kept as fallback)
     String coreUrl = cfg.url();
-    System.out.println("Consumer starting site=" + cfg.site() + " queue=" + cfg.queue() + " url=" + coreUrl);
+    System.out.println("Consumer starting JMS site=" + cfg.site() + " queue=" + cfg.queue() + " url=" + coreUrl);
 
     vertx.executeBlocking(promise -> {
       long backoffMs = 1000;
       while (true) {
-        Connection conn = null;
-        Session session = null;
-        MessageConsumer consumer = null;
         try {
-          ConnectionFactory cf = new ActiveMQJMSConnectionFactory(coreUrl, cfg.username(), cfg.password());
-          conn = cf.createConnection();
-          String host = System.getenv().getOrDefault("HOSTNAME", "pod");
-          conn.setClientID("event-consumer-" + cfg.site() + "-" + host);
-          conn.start();
-          session = conn.createSession(false, Session.AUTO_ACKNOWLEDGE);
-          // Use core address/topic name (no jms.topic.* prefix) so it matches MQTT publishes.
-          consumer = session.createDurableSubscriber(new ActiveMQTopic(cfg.queue()), "sub-" + cfg.site());
-
-          System.out.println("Consumer connected site=" + cfg.site() + " queue=" + cfg.queue() + " url=" + coreUrl);
-          backoffMs = 1000;
-
-          while (true) {
-            Message msg = consumer.receive(1000);
-            if (msg == null) {
-              continue;
-            }
-            state.onMessage(msg);
-          }
+          // NOTE: JMS mode currently disabled for multicluster MQTT demos.
+          Thread.sleep(30000);
         } catch (Exception e) {
           System.err.println("Consume error (will reconnect): " + e.getMessage());
           try {
@@ -90,10 +94,6 @@ public class EventConsumerMain implements QuarkusApplication {
             Thread.currentThread().interrupt();
           }
           backoffMs = Math.min(backoffMs * 2, 30000);
-        } finally {
-          try { if (consumer != null) consumer.close(); } catch (Exception ignored) {}
-          try { if (session != null) session.close(); } catch (Exception ignored) {}
-          try { if (conn != null) conn.close(); } catch (Exception ignored) {}
         }
       }
     }, false);
@@ -102,12 +102,101 @@ public class EventConsumerMain implements QuarkusApplication {
     return 0;
   }
 
+  private void startMqtt() throws Exception {
+    String brokerUrl = "ssl://" + mqtt.host() + ":" + mqtt.port();
+    String clientId = "event-consumer-" + mqtt.site() + "-" + System.getenv().getOrDefault("HOSTNAME", "pod");
+
+    MqttConnectOptions opts = new MqttConnectOptions();
+    opts.setAutomaticReconnect(true);
+    opts.setCleanSession(true);
+    opts.setConnectionTimeout(10);
+    opts.setKeepAliveInterval(30);
+    if (mqtt.insecureTls()) {
+      opts.setSocketFactory(trustAllSocketFactory());
+    }
+
+    MqttClient client = new MqttClient(brokerUrl, clientId, new MemoryPersistence());
+    client.setCallback(new MqttCallbackExtended() {
+      @Override
+      public void connectComplete(boolean reconnect, String serverURI) {
+        System.out.println("MQTT connected reconnect=" + reconnect + " uri=" + serverURI + " topic=" + mqtt.topic());
+        try {
+          client.subscribe(mqtt.topic(), 0);
+        } catch (Exception e) {
+          System.err.println("MQTT subscribe error: " + e.getMessage());
+        }
+      }
+
+      @Override
+      public void connectionLost(Throwable cause) {
+        System.err.println("MQTT connection lost: " + (cause != null ? cause.getMessage() : "null"));
+      }
+
+      @Override
+      public void messageArrived(String topic, MqttMessage message) throws Exception {
+        String body = new String(message.getPayload(), StandardCharsets.UTF_8);
+        state.onPayload(body);
+      }
+
+      @Override
+      public void deliveryComplete(IMqttDeliveryToken token) {
+        // consumer only
+      }
+    });
+
+    client.connect(opts);
+  }
+
+  private static SSLSocketFactory trustAllSocketFactory() throws Exception {
+    TrustManager[] trustAll = new TrustManager[] {
+      new X509TrustManager() {
+        @Override public void checkClientTrusted(X509Certificate[] chain, String authType) {}
+        @Override public void checkServerTrusted(X509Certificate[] chain, String authType) {}
+        @Override public X509Certificate[] getAcceptedIssuers() { return new X509Certificate[0]; }
+      }
+    };
+    SSLContext ctx = SSLContext.getInstance("TLS");
+    ctx.init(null, trustAll, new SecureRandom());
+    return ctx.getSocketFactory();
+  }
+
   @ApplicationScoped
   public static class ConsumerState {
     private final AtomicLong received = new AtomicLong();
     private final AtomicLong duplicates = new AtomicLong();
     private final Map<String, Boolean> seen = new ConcurrentHashMap<>();
     private final Deque<EventSample> last = new ArrayDeque<>();
+
+    public void onPayload(String body) throws Exception {
+      received.incrementAndGet();
+
+      String key = null;
+      if (body != null) {
+        int i = body.indexOf("\"eventId\":\"");
+        if (i >= 0) {
+          int start = i + "\"eventId\":\"".length();
+          int end = body.indexOf('"', start);
+          if (end > start) {
+            key = body.substring(start, end);
+          }
+        }
+      }
+      if (key == null) {
+        key = body;
+      }
+      if (key != null) {
+        if (seen.putIfAbsent(key, Boolean.TRUE) != null) {
+          duplicates.incrementAndGet();
+        }
+      }
+
+      synchronized (last) {
+        last.addFirst(new EventSample(Instant.now().toString(), null, body));
+        while (last.size() > 20) {
+          last.removeLast();
+        }
+      }
+    }
 
     public void onMessage(Message msg) throws Exception {
       received.incrementAndGet();
