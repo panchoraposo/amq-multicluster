@@ -230,18 +230,19 @@
     let dots = [];
     let snapshots = {}; // site -> snapshot (event-consumer)
     let brokerStats = {}; // site -> broker queue stats (queue mode)
+    let brokerHealth = {}; // site -> {online, active} even without consumer
     let prevReceived = {}; // site -> received
     let rr = 0; // for on-prem distribution when deltas are unknown
 
     const ANCHORS = {
       // sensors (on-prem)
-      dev1:{x:.10,y:.11},
-      dev2:{x:.18,y:.07},
-      dev3:{x:.18,y:.17},
+      dev1:{x:.08,y:.08},
+      dev2:{x:.16,y:.13},
+      dev3:{x:.08,y:.18},
       onprem:{x:.32,y:.16}, // HAProxy ingress for on-prem devices (AMQ1/AMQ2)
       // sensors (public cloud side)
-      cdev1:{x:.68,y:.07},
-      cdev2:{x:.68,y:.17},
+      cdev1:{x:.66,y:.08},
+      cdev2:{x:.74,y:.16},
       cloud:{x:.82,y:.12},  // Public Cloud endpoint (AMQ3 ingest)
       br1:{x:.18,y:.52}, br2:{x:.50,y:.52}, br3:{x:.82,y:.52},
       con1:{x:.18,y:.84}, con2:{x:.50,y:.84},
@@ -313,7 +314,8 @@
     }
 
     function brokerCard(site, snap){
-      const online = !!snap;
+      const healthy = brokerHealth[site] || null;
+      const online = !!snap || (healthy && healthy.online);
       const stCls = online ? "online" : "offline";
       const stTxt = online ? "online" : "offline";
       const received = online ? (snap.received ?? 0) : 0;
@@ -530,6 +532,13 @@
       const ups = SITES.filter(s=>!!snapshots[s]);
       const downs = SITES.filter(s=>!snapshots[s]);
       if(downs.length){
+        // If AMQ3 has no consumer, snapshot is expected to be unavailable.
+        if(downs.length===1 && downs[0]==="amq3" && (brokerHealth.amq3 && brokerHealth.amq3.online)){
+          $("#narr").innerHTML =
+            `<b>${siteLabel("amq3")}</b> has no consumer (by design), but the broker is <b>online</b>. ` +
+            `Replication is validated when <b>${siteLabel("amq1")}</b>/<b>${siteLabel("amq2")}</b> receive public-cloud sensor events.`;
+          return;
+        }
         $("#narr").innerHTML = `<b>${downs.map(siteLabel).join(", ")}</b> snapshot unavailable. Others keep serving.`;
         return;
       }
@@ -662,9 +671,20 @@
       }
     }
 
+    async function tickBrokerHealth(site){
+      try{
+        const r=await fetch("/api/broker/"+site+"/health",{cache:"no-store"});
+        if(!r.ok) throw new Error("HTTP "+r.status);
+        return await r.json();
+      }catch(e){
+        return null;
+      }
+    }
+
     async function loop(){
       const res = await Promise.all(SITES.map(s=>tickSite(s)));
       const bres = await Promise.all(SITES.map(s=>tickBroker(s)));
+      const hres = await Promise.all(SITES.map(s=>tickBrokerHealth(s)));
       let okAny = false;
       res.forEach((snap, i)=>{
         const site = SITES[i];
@@ -685,6 +705,15 @@
           brokerStats[site] = bs;
         } else {
           brokerStats[site] = null;
+        }
+      });
+      hres.forEach((hs, i)=>{
+        const site = SITES[i];
+        if(hs && hs.online){
+          brokerHealth[site] = hs;
+          okAny = okAny || true;
+        } else {
+          brokerHealth[site] = brokerHealth[site] || null;
         }
       });
       updateConn(okAny);
