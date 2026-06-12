@@ -3,13 +3,15 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>AMQ Broker · High Availability</title>
+  <title>AMQ Broker · Multicluster</title>
   <style>
     :root{
       --bg0:#0a0d14; --bg1:#121826; --card:rgba(255,255,255,.045);
       --cardb:rgba(255,255,255,.09); --txt:#e8edf6; --muted:#8b97ad;
-      --rh:#ee0000; --rh2:#ff4d4d; --green:#3ddc84; --amber:#ffb020;
-      --cyan:#38bdf8; --violet:#a78bfa; --shadow:0 10px 40px rgba(0,0,0,.45);
+      --rh:#ee0000; --green:#3ddc84; --amber:#ffb020;
+      --cyan:#38bdf8; --violet:#a78bfa; --teal:#2dd4bf;
+      --shadow:0 10px 40px rgba(0,0,0,.45);
+      --amq1:#2563eb; --amq2:#16a34a; --amq3:#a21caf;
     }
     *{box-sizing:border-box}
     html,body{margin:0;height:100%}
@@ -40,60 +42,58 @@
       padding:7px 12px;border-radius:999px;border:1px solid var(--cardb);
       background:var(--card);color:var(--muted)
     }
-    .dot{width:9px;height:9px;border-radius:50%;background:var(--muted);
-      box-shadow:0 0 0 0 rgba(0,0,0,0)}
+    .dot{width:9px;height:9px;border-radius:50%;background:var(--muted)}
     .dot.ok{background:var(--green);box-shadow:0 0 10px var(--green)}
-    .dot.bad{background:var(--rh2);box-shadow:0 0 10px var(--rh2)}
+    .dot.bad{background:#ff4d4d;box-shadow:0 0 10px #ff4d4d}
 
-    .wrap{display:grid;grid-template-columns:1fr 320px;gap:18px;padding:18px 26px}
+    .wrap{display:grid;grid-template-columns:1fr 340px;gap:18px;padding:18px 26px}
     @media(max-width:1100px){.wrap{grid-template-columns:1fr}}
 
     .stagewrap{
       position:relative;background:var(--card);border:1px solid var(--cardb);
       border-radius:18px;box-shadow:var(--shadow);overflow:hidden;
     }
-    .stage{position:relative;width:100%;aspect-ratio:16/9;min-height:440px}
+    .stage{position:relative;width:100%;aspect-ratio:16/9;min-height:560px}
     svg#svg{position:absolute;inset:0;width:100%;height:100%;z-index:1}
     .flow{animation:dashflow 1s linear infinite}
+    body.no-traffic .flow{animation:none; opacity:.28}
     @keyframes dashflow{to{stroke-dashoffset:-28}}
 
-    .node{position:absolute;transform:translate(-50%,-50%);z-index:2;
-      transition:opacity .4s, filter .4s}
-    .endpoint{width:118px;text-align:center;}
+    .node{position:absolute;transform:translate(-50%,-50%);z-index:2}
+    .endpoint{width:132px;text-align:center;}
     .endpoint .ic{
       width:62px;height:62px;margin:0 auto 8px;border-radius:16px;
       display:grid;place-items:center;font-size:26px;
       background:linear-gradient(135deg,rgba(255,255,255,.10),rgba(255,255,255,.03));
       border:1px solid var(--cardb);box-shadow:var(--shadow)
     }
-    .endpoint .lbl{font-size:13px;font-weight:600}
+    .endpoint .lbl{font-size:13px;font-weight:700}
     .endpoint .sub{font-size:11px;color:var(--muted)}
+    .badge{display:inline-block;margin-top:5px;font-size:11px;padding:2px 8px;border-radius:999px;
+      background:rgba(56,189,248,.16);color:var(--cyan);border:1px solid rgba(56,189,248,.3)}
 
     .broker{
       width:236px;border-radius:16px;padding:14px 15px;
       background:linear-gradient(180deg,rgba(255,255,255,.07),rgba(255,255,255,.025));
       border:1px solid var(--cardb);box-shadow:var(--shadow);position:relative;
     }
-    .broker.active{border-color:rgba(61,220,132,.5);
-      box-shadow:0 0 0 1px rgba(61,220,132,.25),0 14px 40px rgba(0,0,0,.5)}
-    .broker.offline{opacity:.5;filter:grayscale(.7);border-color:rgba(238,0,0,.5)}
-    .broker .top{display:flex;align-items:center;justify-content:space-between;gap:8px}
-    .broker .nm{font-weight:700;font-size:15px;display:flex;align-items:center;gap:8px}
-    .broker .pod{font-size:11px;color:var(--muted);margin-top:1px}
-    .st{font-size:10.5px;font-weight:700;padding:3px 9px;border-radius:999px;
+    .broker.online{border-color:rgba(61,220,132,.35)}
+    .broker.offline{opacity:.55;filter:grayscale(.7);border-color:rgba(255,77,77,.45)}
+    .broker .top{display:flex;align-items:center;justify-content:space-between;gap:10px}
+    .broker .nm{font-weight:800;font-size:15px;display:flex;align-items:center;gap:10px}
+    .bmark{width:11px;height:11px;border-radius:50%;}
+    .st{font-size:10.5px;font-weight:800;padding:3px 9px;border-radius:999px;
       letter-spacing:.4px;text-transform:uppercase}
-    .st.active{background:rgba(61,220,132,.16);color:var(--green);
-      border:1px solid rgba(61,220,132,.4)}
-    .st.standby{background:rgba(255,176,32,.14);color:var(--amber);
-      border:1px solid rgba(255,176,32,.4)}
-    .st.offline{background:rgba(238,0,0,.16);color:var(--rh2);
-      border:1px solid rgba(238,0,0,.45)}
+    .st.online{background:rgba(61,220,132,.16);color:var(--green);border:1px solid rgba(61,220,132,.35)}
+    .st.offline{background:rgba(255,77,77,.14);color:#ffb8b8;border:1px solid rgba(255,77,77,.35)}
+    .broker .pod{font-size:11px;color:var(--muted);margin-top:2px}
     .grid2{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px}
     .met{background:rgba(0,0,0,.22);border:1px solid rgba(255,255,255,.05);
       border-radius:10px;padding:7px 9px}
-    .met .v{font-size:18px;font-weight:700;line-height:1}
+    .met .v{font-size:18px;font-weight:800;line-height:1}
     .met .k{font-size:10px;color:var(--muted);margin-top:3px}
     .met.hl .v{color:var(--cyan)}
+    .met.bad .v{color:#ff7a7a}
 
     .side{display:flex;flex-direction:column;gap:14px}
     .panel{background:var(--card);border:1px solid var(--cardb);border-radius:16px;
@@ -102,33 +102,43 @@
       letter-spacing:.6px;color:var(--muted)}
     .seg{display:flex;background:rgba(0,0,0,.25);border-radius:12px;padding:4px;gap:4px}
     .seg button{flex:1;border:0;background:transparent;color:var(--muted);
-      padding:9px;border-radius:9px;font-weight:600;cursor:pointer;font-size:13px}
+      padding:9px;border-radius:9px;font-weight:700;cursor:pointer;font-size:13px}
     .seg button.on{background:linear-gradient(135deg,var(--rh),#b00);color:#fff;
       box-shadow:0 6px 16px rgba(238,0,0,.35)}
     .narr{font-size:13.5px;line-height:1.5;min-height:64px}
+    .links{display:flex;flex-wrap:wrap;gap:8px}
+    .link{
+      display:inline-flex;align-items:center;gap:8px;
+      border:1px solid var(--cardb);background:rgba(0,0,0,.18);
+      padding:8px 10px;border-radius:11px;color:var(--txt);text-decoration:none;
+      font-size:12.5px;font-weight:700;
+    }
+    .link:hover{background:rgba(255,255,255,.08)}
     .legend{display:flex;flex-direction:column;gap:9px;font-size:12.5px;color:var(--muted)}
     .legend .row{display:flex;align-items:center;gap:10px}
     .swatch{width:14px;height:14px;border-radius:50%;flex:0 0 auto}
+    .events{margin-top:6px}
+    .row{display:flex;gap:10px;align-items:center;justify-content:space-between}
+    .tag{font-size:11px;padding:2px 8px;border-radius:999px;border:1px solid rgba(255,255,255,.14);color:var(--muted)}
+    table{width:100%;border-collapse:separate;border-spacing:0 8px}
+    td{font-size:12px;color:var(--muted);padding:8px 10px;background:rgba(0,0,0,.18);border:1px solid rgba(255,255,255,.08)}
+    tr td:first-child{border-top-left-radius:10px;border-bottom-left-radius:10px}
+    tr td:last-child{border-top-right-radius:10px;border-bottom-right-radius:10px}
+    .mono{font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,"Liberation Mono","Courier New",monospace}
     .toast{position:fixed;left:50%;top:18px;transform:translateX(-50%);z-index:50;
       background:#1b2436;border:1px solid var(--cardb);padding:11px 16px;border-radius:12px;
       font-size:13px;box-shadow:var(--shadow);opacity:0;transition:.3s;pointer-events:none}
     .toast.show{opacity:1}
-    .banner{position:absolute;left:50%;top:14px;transform:translateX(-50%);z-index:5;
-      background:rgba(238,0,0,.16);border:1px solid rgba(238,0,0,.45);color:#ffd0d0;
-      padding:8px 16px;border-radius:999px;font-size:13px;font-weight:600;
-      display:none;align-items:center;gap:9px;backdrop-filter:blur(6px)}
-    .banner.show{display:flex}
   </style>
 </head>
 <body>
   <div id="toast" class="toast"></div>
-
   <header>
     <div class="logo">
       <div class="mark">AMQ</div>
       <div>
-        <h1>AMQ Broker · High Availability</h1>
-        <p>Multicluster demo · live data via Jolokia</p>
+        <h1>AMQ Broker · Multicluster</h1>
+        <p>3 brokers · topic/queue · multiple producers</p>
       </div>
     </div>
     <div class="spacer"></div>
@@ -137,7 +147,6 @@
 
   <div class="wrap">
     <div class="stagewrap">
-      <div id="banner" class="banner"></div>
       <div id="stage" class="stage">
         <svg id="svg">
           <defs>
@@ -151,12 +160,12 @@
       </div>
     </div>
 
-    <div class="side">
+    <aside class="side">
       <div class="panel">
         <h3>Scenario</h3>
         <div class="seg">
-          <button id="btnQueue" class="on">📥 Queue (anycast)</button>
-          <button id="btnTopic">📡 Topic (multicast)</button>
+          <button id="btnTopic" class="on">📡 Topic (multicast)</button>
+          <button id="btnQueue">📥 Queue (anycast)</button>
         </div>
         <div style="margin-top:10px;color:var(--muted);font-size:12.5px" id="modeHelp"></div>
       </div>
@@ -167,16 +176,30 @@
       </div>
 
       <div class="panel">
-        <h3>Legend</h3>
-        <div class="legend">
-          <div class="row"><span class="swatch" style="background:#38bdf8"></span> Message (queue / point-to-point)</div>
-          <div class="row"><span class="swatch" style="background:#a78bfa"></span> Message (topic / copy per subscriber)</div>
-          <div class="row"><span class="swatch" style="background:#ffb020"></span> Migration between brokers</div>
-          <div class="row"><span class="swatch" style="background:#3ddc84"></span> Broker ACTIVE</div>
-          <div class="row"><span class="swatch" style="background:#ff4d4d"></span> Broker OFFLINE</div>
+        <h3>Quick links</h3>
+        <div class="links" id="quick-links"></div>
+      </div>
+
+      <div class="panel">
+        <h3>Latest events</h3>
+        <div class="row">
+          <div class="mono" style="font-size:12px;color:var(--muted)">Latest payload per site (from <span class="mono">event-consumer</span>)</div>
+          <span class="tag mono" id="topicTag">iot.events.v3</span>
+        </div>
+        <div class="events">
+          <table><tbody id="events-tbody"></tbody></table>
         </div>
       </div>
-    </div>
+
+      <div class="panel">
+        <h3>Legend</h3>
+        <div class="legend">
+          <div class="row"><span class="swatch" style="background:#38bdf8"></span> Producer → Broker</div>
+          <div class="row"><span class="swatch" style="background:#3ddc84"></span> Broker → Consumer</div>
+          <div class="row"><span class="swatch" style="background:#2dd4bf"></span> Mirror replication</div>
+        </div>
+      </div>
+    </aside>
   </div>
 
   <script>
@@ -184,120 +207,176 @@
     const svg = $("#svg"), pathsG = $("#paths"), dotsG = $("#dots"), stage = $("#stage");
     const NS = "http://www.w3.org/2000/svg";
 
-    let CFG = null;
-    let mode = "queue";
-    let last = null;
-    let prev = {};
-    let dots = [];
-    let layout = {};
-    let offlineSince = {};
-
-    const COLORS = {queue:"#38bdf8", topic:"#a78bfa", migrate:"#ffb020"};
-
-    const ANCHORS = {
-      producer:{x:.07,y:.5},
-      b0:{x:.40,y:.27},
-      b1:{x:.40,y:.73},
-      consumer:{x:.92,y:.5},
-      s0:{x:.93,y:.26}, s1:{x:.93,y:.5}, s2:{x:.93,y:.74},
+    const SITES = ["amq1","amq2","amq3"];
+    const COLORS = {
+      produce:"#38bdf8",
+      consume:"#3ddc84",
+      mirror:"#2dd4bf"
     };
 
-    function computeLayout(){
-      const r = stage.getBoundingClientRect();
-      const W=r.width, H=r.height;
-      svg.setAttribute("viewBox",`0 0 ${W} ${H}`);
-      layout = {};
-      for(const k in ANCHORS) layout[k] = {x:ANCHORS[k].x*W, y:ANCHORS[k].y*H};
-      layout.W=W; layout.H=H;
-      placeNodes();
-      drawPaths();
-    }
+    let mode = "topic"; // topic | queue
+    let ui = null;
+    let layout = {};
+    let dots = [];
+    let snapshots = {}; // site -> snapshot
+    let prevReceived = {}; // site -> received
+    let trafficUntil = 0;
+
+    const ANCHORS = {
+      // three columns
+      prod1:{x:.18,y:.16}, br1:{x:.18,y:.48}, con1:{x:.18,y:.82},
+      prod2:{x:.50,y:.16}, br2:{x:.50,y:.48}, con2:{x:.50,y:.82},
+      prod3:{x:.82,y:.16}, br3:{x:.82,y:.48}, con3:{x:.82,y:.82},
+    };
 
     function nodeEl(id){ return document.getElementById("node-"+id); }
     function ensureNode(id, html, cls){
       let el = nodeEl(id);
       if(!el){
         el = document.createElement("div");
-        el.id = "node-"+id; el.className = "node "+cls;
+        el.id = "node-"+id;
+        el.className = "node "+(cls||"");
         stage.appendChild(el);
       }
       el.innerHTML = html;
+      el.style.display = "";
       return el;
     }
     function moveNode(id, pt){
       const el = nodeEl(id); if(!el) return;
-      el.style.left = pt.x+"px"; el.style.top = pt.y+"px";
+      el.style.left = pt.x+"px";
+      el.style.top = pt.y+"px";
     }
 
-    function brokerById(id){ return last? last.brokers.find(b=>b.id===id):null; }
+    function cubic(a,b,curv=0.22){
+      // smooth bezier like amq-broker-demo
+      const dx = b.x-a.x;
+      const c1 = {x:a.x + dx*curv, y:a.y};
+      const c2 = {x:b.x - dx*curv, y:b.y};
+      return `M ${a.x} ${a.y} C ${c1.x} ${c1.y}, ${c2.x} ${c2.y}, ${b.x} ${b.y}`;
+    }
+    function linePath(d, stroke, opts={}){
+      const p=document.createElementNS(NS,"path");
+      p.setAttribute("d", d);
+      p.setAttribute("fill","none");
+      p.setAttribute("stroke", stroke);
+      p.setAttribute("stroke-width", opts.w || "2.6");
+      p.setAttribute("stroke-linecap","round");
+      if(opts.dash){ p.setAttribute("stroke-dasharray", opts.dash); p.classList.add("flow"); }
+      if(opts.arrow){ p.setAttribute("marker-end","url(#arrow)"); }
+      p.setAttribute("opacity", opts.opacity || "1");
+      return p;
+    }
 
-    function renderBrokerCard(id){
-      const b = brokerById(id) || {name:"Broker-"+id, pod:CFG?CFG.brokers[id].pod:"", online:false, active:false, queue:null, topic:null};
-      let stCls="standby", stTxt="standby";
-      if(!b.online){stCls="offline";stTxt="offline";}
-      else if(b.active){stCls="active";stTxt="active";}
-      const q = b.queue||{messageCount:0,consumerCount:0,messagesAdded:0,messagesAcknowledged:0,deliveringCount:0,routed:0};
-      const cardCls = "broker "+(!b.online?"offline":(b.active?"active":""));
+    function computeLayout(){
+      const r = stage.getBoundingClientRect();
+      const W=r.width, H=r.height;
+      svg.setAttribute("viewBox",`0 0 ${W} ${H}`);
+      layout = {W,H};
+      for(const k in ANCHORS){
+        layout[k] = {x:ANCHORS[k].x*W, y:ANCHORS[k].y*H};
+      }
+      placeNodes();
+      drawPaths();
+    }
+
+    function siteLabel(site){
+      if(!ui) return site.toUpperCase();
+      if(site==="amq1") return ui.amq1Label || "AMQ1";
+      if(site==="amq2") return ui.amq2Label || "AMQ2";
+      if(site==="amq3") return ui.amq3Label || "AMQ3";
+      return site.toUpperCase();
+    }
+    function siteColor(site){
+      if(!ui) return "#999";
+      if(site==="amq1") return ui.amq1Color || "#2563eb";
+      if(site==="amq2") return ui.amq2Color || "#16a34a";
+      if(site==="amq3") return ui.amq3Color || "#a21caf";
+      return "#999";
+    }
+
+    function brokerCard(site, snap){
+      const online = !!snap;
+      const stCls = online ? "online" : "offline";
+      const stTxt = online ? "online" : "offline";
+      const received = online ? (snap.received ?? 0) : 0;
+      const dup = online ? (snap.duplicates ?? 0) : 0;
+      const last = online && snap.last && snap.last.length ? snap.last[0] : null;
+      const lastId = last && last.props ? (last.props.eventId || last.props.eventid || "") : "";
       const html = `
-        <div class="${cardCls}">
+        <div class="broker ${stCls}">
           <div class="top">
             <div>
-              <div class="nm">🗄️ ${b.name}</div>
-              <div class="pod">${b.pod||""}</div>
+              <div class="nm"><span class="bmark" style="background:${siteColor(site)}"></span>${siteLabel(site)}</div>
+              <div class="pod mono">topic <span class="mono">${$("#topicTag").textContent}</span></div>
             </div>
             <div class="st ${stCls}">${stTxt}</div>
           </div>
           <div class="grid2">
-            <div class="met hl"><div class="v">${q.routed||0}</div><div class="k">routed (passed here)</div></div>
-            <div class="met"><div class="v">${q.messageCount||0}</div><div class="k">in queue</div></div>
-            <div class="met"><div class="v">${q.consumerCount||0}</div><div class="k">consumers</div></div>
-            <div class="met"><div class="v">${q.messagesAcknowledged||0}</div><div class="k">delivered</div></div>
+            <div class="met hl"><div class="v mono">${received}</div><div class="k">received</div></div>
+            <div class="met bad"><div class="v mono">${dup}</div><div class="k">duplicates</div></div>
+            <div class="met"><div class="v mono">${(snap && snap.last ? snap.last.length : 0)}</div><div class="k">last buffer</div></div>
+            <div class="met"><div class="v mono">${lastId ? "ok" : "-"}</div><div class="k">last eventId</div></div>
           </div>
         </div>`;
-      ensureNode("b"+id, html, "");
+      return html;
     }
 
     function placeNodes(){
-      ensureNode("producer", `<div class="endpoint"><div class="ic">📤</div><div class="lbl">Producer</div><div class="sub">Node-RED</div></div>`, "");
-      moveNode("producer", layout.producer);
+      const s1 = snapshots.amq1 || null;
+      const s2 = snapshots.amq2 || null;
+      const s3 = snapshots.amq3 || null;
 
-      renderBrokerCard(0); moveNode("b0", layout.b0);
-      renderBrokerCard(1); moveNode("b1", layout.b1);
+      ensureNode("prod-amq1", `<div class="endpoint"><div class="ic">🧩</div><div class="lbl">Node-RED</div><div class="sub">${siteLabel("amq1")}</div></div>`);
+      ensureNode("prod-amq2", `<div class="endpoint"><div class="ic">🧩</div><div class="lbl">Node-RED</div><div class="sub">${siteLabel("amq2")}</div></div>`);
+      ensureNode("prod-amq3", `<div class="endpoint"><div class="ic">🧩</div><div class="lbl">Node-RED</div><div class="sub">${siteLabel("amq3")}</div></div>`);
 
-      if(mode==="queue"){
-        ["s0","s1","s2"].forEach(s=>{const e=nodeEl(s);if(e)e.style.display="none";});
-        const e=ensureNode("consumer", `<div class="endpoint"><div class="ic">📥</div><div class="lbl">Consumer</div><div class="sub" id="consSub">waiting…</div></div>`, "");
-        e.style.display=""; moveNode("consumer", layout.consumer);
-      }else{
-        const c=nodeEl("consumer"); if(c)c.style.display="none";
-        const subs=[["s0","Subscriber A"],["s1","Subscriber B"],["s2","Subscriber C"]];
-        subs.forEach(([id,nm])=>{
-          const e=ensureNode(id, `<div class="endpoint"><div class="ic">📥</div><div class="lbl">${nm}</div><div class="sub">gets a copy</div></div>`, "");
-          e.style.display=""; moveNode(id, layout[id]);
-        });
-      }
+      ensureNode("br-amq1", brokerCard("amq1", s1));
+      ensureNode("br-amq2", brokerCard("amq2", s2));
+      ensureNode("br-amq3", brokerCard("amq3", s3));
+
+      ensureNode("con-amq1", `<div class="endpoint"><div class="ic">📥</div><div class="lbl">Consumer</div><div class="sub">${siteLabel("amq1")}</div></div>`);
+      ensureNode("con-amq2", `<div class="endpoint"><div class="ic">📥</div><div class="lbl">Consumer</div><div class="sub">${siteLabel("amq2")}</div></div>`);
+      ensureNode("con-amq3", `<div class="endpoint"><div class="ic">📥</div><div class="lbl">Consumer</div><div class="sub">${siteLabel("amq3")}</div></div>`);
+
+      moveNode("prod-amq1", layout.prod1);
+      moveNode("prod-amq2", layout.prod2);
+      moveNode("prod-amq3", layout.prod3);
+      moveNode("br-amq1", layout.br1);
+      moveNode("br-amq2", layout.br2);
+      moveNode("br-amq3", layout.br3);
+      moveNode("con-amq1", layout.con1);
+      moveNode("con-amq2", layout.con2);
+      moveNode("con-amq3", layout.con3);
     }
 
-    function lineEl(a,b,cls){
-      const p=document.createElementNS(NS,"path");
-      p.setAttribute("d",`M ${a.x} ${a.y} L ${b.x} ${b.y}`);
-      p.setAttribute("fill","none");
-      p.setAttribute("stroke", cls==="cluster"?"rgba(255,176,32,.55)":"rgba(255,255,255,.13)");
-      p.setAttribute("stroke-width", cls==="cluster"?"2.4":"2");
-      if(cls==="cluster"){p.setAttribute("stroke-dasharray","7 7");p.classList.add("flow");}
-      return p;
-    }
     function drawPaths(){
-      pathsG.innerHTML="";
-      pathsG.appendChild(lineEl(layout.producer, layout.b0));
-      pathsG.appendChild(lineEl(layout.producer, layout.b1));
-      pathsG.appendChild(lineEl(layout.b0, layout.b1, "cluster"));
-      if(mode==="queue"){
-        pathsG.appendChild(lineEl(layout.b0, layout.consumer));
-        pathsG.appendChild(lineEl(layout.b1, layout.consumer));
-      }else{
-        ["s0","s1","s2"].forEach(s=> pathsG.appendChild(lineEl(layout.b0, layout[s])));
-      }
+      pathsG.innerHTML = "";
+
+      // local produce/consume curves
+      const p1 = cubic(layout.prod1, layout.br1);
+      const p2 = cubic(layout.prod2, layout.br2);
+      const p3 = cubic(layout.prod3, layout.br3);
+      const c1 = cubic(layout.br1, layout.con1);
+      const c2 = cubic(layout.br2, layout.con2);
+      const c3 = cubic(layout.br3, layout.con3);
+
+      pathsG.appendChild(linePath(p1, "rgba(56,189,248,.28)", {w:"2.8", dash:"10 10"}));
+      pathsG.appendChild(linePath(p2, "rgba(56,189,248,.28)", {w:"2.8", dash:"10 10"}));
+      pathsG.appendChild(linePath(p3, "rgba(56,189,248,.28)", {w:"2.8", dash:"10 10"}));
+
+      pathsG.appendChild(linePath(c1, "rgba(61,220,132,.26)", {w:"2.8", dash:"10 10"}));
+      pathsG.appendChild(linePath(c2, "rgba(61,220,132,.26)", {w:"2.8", dash:"10 10"}));
+      pathsG.appendChild(linePath(c3, "rgba(61,220,132,.26)", {w:"2.8", dash:"10 10"}));
+
+      // mirror mesh between brokers
+      const m12 = cubic(layout.br1, layout.br2, 0.18);
+      const m23 = cubic(layout.br2, layout.br3, 0.18);
+      const m13 = cubic(layout.br1, layout.br3, 0.12);
+
+      pathsG.appendChild(linePath(m12, "rgba(45,212,191,.32)", {w:"2.7", dash:"7 9"}));
+      pathsG.appendChild(linePath(m23, "rgba(45,212,191,.32)", {w:"2.7", dash:"7 9"}));
+      pathsG.appendChild(linePath(m13, "rgba(45,212,191,.22)", {w:"2.5", dash:"7 11"}));
     }
 
     function spawnDot(route, color, speed){
@@ -309,9 +388,9 @@
         segs.push({a,b,len}); total+=len;
       }
       const el=document.createElementNS(NS,"circle");
-      el.setAttribute("r","4.2");
+      el.setAttribute("r","4.0");
       el.setAttribute("fill", color);
-      el.setAttribute("opacity","0.95");
+      el.setAttribute("opacity","0.96");
       dotsG.appendChild(el);
       dots.push({el,segs,total,dist:0,speed});
     }
@@ -338,57 +417,8 @@
       requestAnimationFrame(animate);
     }
 
-    function pickIngress(){
-      const on = last.brokers.filter(b=>b.online && b.active);
-      if(on.length===0) return null;
-      const egress = pickEgress();
-      const other = on.find(b=> !egress || b.id!==egress.id);
-      return other || on.sort((a,b)=>a.id-b.id)[0];
-    }
-    function pickEgress(){
-      const on = last.brokers.filter(b=>b.online && b.active);
-      const withCons = on.filter(b=>b.queue && b.queue.consumerCount>0);
-      if(withCons.length) return withCons.sort((a,b)=>b.queue.consumerCount-a.queue.consumerCount)[0];
-      return on.length? on.sort((a,b)=>a.id-b.id)[0] : null;
-    }
-    function routeFor(ingressId, egressId){
-      const a = ingressId===0?layout.b0:layout.b1;
-      const route=[layout.producer, a];
-      if(egressId!==ingressId){
-        route.push(egressId===0?layout.b0:layout.b1);
-      }
-      route.push(layout.consumer);
-      return route;
-    }
-
-    function spawnFromDeltas(){
-      const ingress = pickIngress(), egress = pickEgress();
-      if(!ingress || !egress) return;
-      const eb = last.brokers.find(b=>b.id===egress.id);
-      const ib = last.brokers.find(b=>b.id===ingress.id);
-      const dAck = (eb.queue?eb.queue.messagesAcknowledged:0) - ((prev[egress.id]||{}).ack||0);
-      const dRouted = (ib.queue?ib.queue.routed:0) - ((prev[ingress.id]||{}).routed||0);
-      const n = Math.max(0, Math.min(8, Math.max(dRouted, dAck)));
-      const route = routeFor(ingress.id, egress.id);
-      for(let i=0;i<n;i++) setTimeout(()=>spawnDot(route, COLORS.queue, 250), i*130);
-    }
-    function fanOutDot(color){
-      const ingress = pickIngress();
-      if(!ingress) return;
-      const b = ingress.id===0?layout.b0:layout.b1;
-      ["s0","s1","s2"].forEach(s=>{
-        setTimeout(()=>spawnDot([layout.producer,b,layout[s]], color, 260), Math.random()*220);
-      });
-    }
-    function spawnTopic(){
-      const tb = last.brokers.find(b=>b.online && b.topic);
-      if(!tb){
-        if(last.brokers.some(b=>b.online&&b.active)) fanOutDot(COLORS.topic);
-        return;
-      }
-      const dRouted = (tb.topic.routedMessageCount||0) - ((prev[tb.id]||{}).topicRouted||0);
-      const n = Math.max(0, Math.min(6, dRouted));
-      for(let i=0;i<n;i++) setTimeout(()=>fanOutDot(COLORS.topic), i*160);
+    function setTrafficActive(active){
+      document.body.classList.toggle("no-traffic", !active);
     }
 
     function toast(msg){
@@ -396,117 +426,166 @@
       clearTimeout(window.__toastT);
       window.__toastT=setTimeout(()=>t.classList.remove("show"),3200);
     }
-    function showBanner(msg){const b=$("#banner");b.innerHTML=msg;b.classList.add("show");}
-    function hideBanner(){$("#banner").classList.remove("show");}
     function updateConn(ok){
       $("#connDot").className="dot "+(ok?"ok":"bad");
-      $("#connTxt").textContent = ok ? "live · jolokia" : "offline";
+      $("#connTxt").textContent = ok ? "live · snapshots" : "offline";
+    }
+
+    function updateModeHelp(){
+      $("#modeHelp").textContent = mode==="topic"
+        ? "Topic (multicast): each publish is mirrored, each site can consume its converged copy."
+        : "Queue (anycast): point-to-point semantics (single consumer receives each message).";
+      $("#topicTag").textContent = "iot.events.v3";
     }
 
     function updateNarration(){
-      const on = last.brokers.filter(b=>b.online);
-      const off = last.brokers.filter(b=>!b.online);
-      const ingress = pickIngress(), egress = pickEgress();
-      let txt="";
-      if(off.length){
-        const surv = on[0];
-        txt = `<b>${off.map(b=>b.name).join(", ")}</b> OFFLINE. The cluster keeps the service running on <b>${surv?surv.name:"—"}</b>. Messages persisted on the volume are not lost.`;
-      }else if(mode==="topic"){
-        txt = last.topicLive
-          ? `Topic mode (multicast). The producer publishes to <b>${ingress?ingress.name:"—"}</b> and every subscriber gets a copy of each message.`
-          : `Topic mode (multicast) — illustrative. Shows pub/sub fan-out.`;
+      const ups = SITES.filter(s=>!!snapshots[s]);
+      const downs = SITES.filter(s=>!snapshots[s]);
+      if(downs.length){
+        $("#narr").innerHTML = `<b>${downs.map(siteLabel).join(", ")}</b> OFFLINE (snapshot unavailable). Others keep serving.`;
+        return;
+      }
+      if(mode==="topic"){
+        $("#narr").innerHTML = `Topic mode (multicast). Producers publish on each site and events are mirrored across <b>${ups.map(siteLabel).join(", ")}</b>.`;
       }else{
-        const totAck = last.brokers.reduce((s,b)=>s+(b.queue?b.queue.messagesAcknowledged:0),0);
-        if(ingress && egress && ingress.id!==egress.id){
-          txt = `Producer publishes to <b>${ingress.name}</b>; the consumer is on <b>${egress.name}</b>. The cluster redistributes messages automatically. <b>${totAck}</b> delivered.`;
-        }else{
-          txt = `Point-to-point flow through queue <b>${last.queue}</b>. <b>${totAck}</b> delivered.`;
-        }
+        $("#narr").innerHTML = `Queue mode (anycast). Point-to-point delivery: each message goes to one consumer on the target broker.`;
       }
-      $("#narr").innerHTML = txt;
-      $("#modeHelp").textContent = mode==="queue"
-        ? "Point-to-point: each message goes to one consumer (JMS Queue equivalent)."
-        : "Publish/subscribe: every subscriber gets a copy (JMS Topic equivalent).";
     }
 
-    function onState(st){
-      const wasOffline = {...offlineSince};
-      last = st;
+    function renderLinks(){
+      const el=$("#quick-links");
+      el.innerHTML="";
+      const add=(label,href)=>{
+        if(!href) return;
+        const a=document.createElement("a");
+        a.className="link";
+        a.href=href;
+        a.target="_blank";
+        a.rel="noreferrer";
+        a.textContent=label;
+        el.appendChild(a);
+      };
+      add((ui?.amq1Label||"AMQ1")+" console", ui?.amq1BrokerConsoleUrl);
+      add((ui?.amq2Label||"AMQ2")+" console", ui?.amq2BrokerConsoleUrl);
+      add((ui?.amq3Label||"AMQ3")+" console", ui?.amq3BrokerConsoleUrl);
+      add((ui?.amq1Label||"AMQ1")+" consumer", ui?.amq1ConsumerUrl);
+      add((ui?.amq2Label||"AMQ2")+" consumer", ui?.amq2ConsumerUrl);
+      add((ui?.amq3Label||"AMQ3")+" consumer", ui?.amq3ConsumerUrl);
+      add((ui?.amq1Label||"AMQ1")+" Node-RED", ui?.amq1SimulatorUrl);
+      add((ui?.amq2Label||"AMQ2")+" Node-RED", ui?.amq2SimulatorUrl);
+      add((ui?.amq3Label||"AMQ3")+" Node-RED", ui?.amq3SimulatorUrl);
+    }
 
-      st.brokers.forEach(b=>{
-        const downNow = !b.online;
-        if(downNow && !wasOffline[b.id]){
-          offlineSince[b.id]=true;
-          const surv = b.id===0?1:0;
-          showBanner(`⚠ ${b.name} OFFLINE — failover to Broker-${surv}`);
-          toast(`${b.name} down — cluster rerouting traffic`);
-        }else if(!downNow && wasOffline[b.id]){
-          offlineSince[b.id]=false;
-          hideBanner();
-          toast(`${b.name} recovered and back in the cluster`);
+    function renderEvents(){
+      const tb=$("#events-tbody");
+      const rows=[];
+      for(const site of SITES){
+        const snap = snapshots[site];
+        const last = snap && snap.last ? snap.last[0] : null;
+        if(!last || !last.body){
+          rows.push(`<tr><td class="mono">${siteLabel(site)}</td><td class="mono">(no events yet)</td></tr>`);
+          continue;
         }
-      });
-
-      st.brokers.forEach(b=> renderBrokerCard(b.id));
-      moveNode("b0",layout.b0); moveNode("b1",layout.b1);
-
-      const egress = pickEgress();
-      const csub=document.getElementById("consSub");
-      if(csub) csub.textContent = egress? `reading from ${egress.name}` : "no broker";
-
-      if(mode==="queue") spawnFromDeltas();
-      else spawnTopic();
-
-      prev={};
-      st.brokers.forEach(b=> prev[b.id]={
-        ack:b.queue?b.queue.messagesAcknowledged:0,
-        routed:b.queue?b.queue.routed:0,
-        topicRouted:b.topic?b.topic.routedMessageCount:0
-      });
-
-      updateNarration();
-      updateConn(true);
+        let body = String(last.body);
+        if(body.length>140) body = body.slice(0,140)+"...";
+        body = body.replaceAll("<","&lt;").replaceAll(">","&gt;");
+        rows.push(`<tr><td class="mono">${siteLabel(site)}</td><td class="mono">${body}</td></tr>`);
+      }
+      tb.innerHTML = rows.join("");
     }
 
-    async function loadConfig(){
-      const r = await fetch("/api/config",{cache:"no-store"});
-      if(!r.ok) throw new Error("HTTP "+r.status);
-      CFG = await r.json();
+    function spawnForDelta(site, delta){
+      if(delta<=0) return;
+      const n = Math.max(0, Math.min(8, delta));
+      const idx = site==="amq1" ? 1 : site==="amq2" ? 2 : 3;
+      const prod = layout["prod"+idx], br = layout["br"+idx], con = layout["con"+idx];
+
+      for(let i=0;i<n;i++){
+        setTimeout(()=>spawnDot([prod, br], COLORS.produce, 260), i*90);
+        setTimeout(()=>spawnDot([br, con], COLORS.consume, 260), i*90 + 80);
+      }
+
+      if(mode==="topic"){
+        const others = SITES.filter(s=>s!==site);
+        others.forEach((o, j)=>{
+          const jdx = o==="amq1" ? 1 : o==="amq2" ? 2 : 3;
+          const obr = layout["br"+jdx];
+          for(let i=0;i<Math.min(4,n);i++){
+            setTimeout(()=>spawnDot([br, obr], COLORS.mirror, 200), (j*120) + i*110);
+          }
+        });
+      }
     }
 
-    async function poll(){
+    async function loadUi(){
       try{
-        const r = await fetch("/api/state",{cache:"no-store"});
+        const r=await fetch("/api/ui/config",{cache:"no-store"});
         if(!r.ok) throw new Error("HTTP "+r.status);
-        const st = await r.json();
-        onState(st);
+        ui = await r.json();
+        document.documentElement.style.setProperty("--amq1", ui.amq1Color || "#2563eb");
+        document.documentElement.style.setProperty("--amq2", ui.amq2Color || "#16a34a");
+        document.documentElement.style.setProperty("--amq3", ui.amq3Color || "#a21caf");
+        renderLinks();
+        computeLayout();
       }catch(e){
-        updateConn(false);
+        ui = null;
       }
+    }
+
+    async function tickSite(site){
+      try{
+        const r=await fetch("/api/consumer/"+site+"/snapshot",{cache:"no-store"});
+        if(!r.ok) throw new Error("HTTP "+r.status);
+        return await r.json();
+      }catch(e){
+        return null;
+      }
+    }
+
+    async function loop(){
+      const res = await Promise.all(SITES.map(s=>tickSite(s)));
+      let okAny = false;
+      res.forEach((snap, i)=>{
+        const site = SITES[i];
+        okAny = okAny || !!snap;
+        const prev = prevReceived[site] || 0;
+        const cur = snap && typeof snap.received === "number" ? snap.received : prev;
+        const delta = Math.max(0, cur - prev);
+        prevReceived[site] = cur;
+        snapshots[site] = snap;
+        if(delta>0){
+          trafficUntil = Date.now() + 3500;
+          spawnForDelta(site, delta);
+        }
+      });
+
+      updateConn(okAny);
+      setTrafficActive(Date.now() < trafficUntil);
+      placeNodes();
+      updateNarration();
+      renderEvents();
     }
 
     function setMode(m){
       mode=m;
-      $("#btnQueue").classList.toggle("on", m==="queue");
       $("#btnTopic").classList.toggle("on", m==="topic");
-      computeLayout();
-      updateNarration();
+      $("#btnQueue").classList.toggle("on", m==="queue");
+      updateModeHelp();
+      toast(m==="topic" ? "Topic mode" : "Queue mode");
     }
 
     window.addEventListener("resize", ()=>computeLayout());
-    $("#btnQueue").addEventListener("click", ()=>setMode("queue"));
     $("#btnTopic").addEventListener("click", ()=>setMode("topic"));
+    $("#btnQueue").addEventListener("click", ()=>setMode("queue"));
 
+    updateModeHelp();
     requestAnimationFrame(animate);
     (async()=>{
-      try{
-        await loadConfig();
-        computeLayout();
-        await poll();
-        setInterval(poll, 1200);
-      }catch(e){
-        updateConn(false);
-      }
+      await loadUi();
+      computeLayout();
+      await loop();
+      setInterval(loadUi, 15000);
+      setInterval(loop, 1300);
     })();
   </script>
 </body>
