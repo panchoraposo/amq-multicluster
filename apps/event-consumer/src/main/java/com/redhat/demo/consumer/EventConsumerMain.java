@@ -28,6 +28,8 @@ import java.util.concurrent.atomic.AtomicLong;
 import java.nio.charset.StandardCharsets;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLSocketFactory;
+import javax.net.ssl.SSLSocket;
+import javax.net.ssl.SSLParameters;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.X509TrustManager;
 import java.security.SecureRandom;
@@ -157,7 +159,37 @@ public class EventConsumerMain implements QuarkusApplication {
     };
     SSLContext ctx = SSLContext.getInstance("TLS");
     ctx.init(null, trustAll, new SecureRandom());
-    return ctx.getSocketFactory();
+    SSLSocketFactory delegate = ctx.getSocketFactory();
+    // Disable hostname verification by clearing endpoint identification algorithm.
+    return new SSLSocketFactory() {
+      @Override public String[] getDefaultCipherSuites() { return delegate.getDefaultCipherSuites(); }
+      @Override public String[] getSupportedCipherSuites() { return delegate.getSupportedCipherSuites(); }
+
+      private java.net.Socket tweak(java.net.Socket s) {
+        if (s instanceof SSLSocket ssl) {
+          SSLParameters p = ssl.getSSLParameters();
+          p.setEndpointIdentificationAlgorithm(null);
+          ssl.setSSLParameters(p);
+        }
+        return s;
+      }
+
+      @Override public java.net.Socket createSocket(java.net.Socket s, String host, int port, boolean autoClose) throws java.io.IOException {
+        return tweak(delegate.createSocket(s, host, port, autoClose));
+      }
+      @Override public java.net.Socket createSocket(String host, int port) throws java.io.IOException {
+        return tweak(delegate.createSocket(host, port));
+      }
+      @Override public java.net.Socket createSocket(String host, int port, java.net.InetAddress localHost, int localPort) throws java.io.IOException {
+        return tweak(delegate.createSocket(host, port, localHost, localPort));
+      }
+      @Override public java.net.Socket createSocket(java.net.InetAddress host, int port) throws java.io.IOException {
+        return tweak(delegate.createSocket(host, port));
+      }
+      @Override public java.net.Socket createSocket(java.net.InetAddress address, int port, java.net.InetAddress localAddress, int localPort) throws java.io.IOException {
+        return tweak(delegate.createSocket(address, port, localAddress, localPort));
+      }
+    };
   }
 
   @ApplicationScoped
