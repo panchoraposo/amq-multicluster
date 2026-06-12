@@ -4,7 +4,7 @@ metadata:
   name: iot-events
   namespace: amq-multicluster
 spec:
-  addressName: iot.events
-  queueName: iot.events
+  addressName: iot.events.v2
+  queueName: iot.events.v2
   routingType: multicast
 

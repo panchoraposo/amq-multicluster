@@ -23,7 +23,7 @@ spec:
             - name: DEMO_BROKER_URL
               value: amq-amq2-hdls-svc:61616
             - name: DEMO_BROKER_QUEUE
-              value: iot.events
+              value: iot.events.v2
             - name: DEMO_BROKER_SITE
               value: amq2
 ---
