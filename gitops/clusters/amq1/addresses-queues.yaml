@@ -6,5 +6,5 @@ metadata:
 spec:
   addressName: iot.events
   queueName: iot.events
-  routingType: anycast
+  routingType: multicast
 

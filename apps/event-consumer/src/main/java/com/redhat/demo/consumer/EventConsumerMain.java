@@ -51,26 +51,44 @@ public class EventConsumerMain implements QuarkusApplication {
   @Override
   public int run(String... args) throws Exception {
     String coreUrl = "tcp://" + cfg.url();
-    ConnectionFactory cf = new ActiveMQJMSConnectionFactory(coreUrl, cfg.username(), cfg.password());
-    Connection conn = cf.createConnection();
-    conn.start();
-
-    Session session = conn.createSession(false, Session.CLIENT_ACKNOWLEDGE);
-    MessageConsumer consumer = session.createConsumer(session.createQueue(cfg.queue()));
-
-    System.out.println("Consumer site=" + cfg.site() + " queue=" + cfg.queue() + " url=" + coreUrl);
+    System.out.println("Consumer starting site=" + cfg.site() + " queue=" + cfg.queue() + " url=" + coreUrl);
 
     vertx.executeBlocking(promise -> {
+      long backoffMs = 1000;
       while (true) {
+        Connection conn = null;
+        Session session = null;
+        MessageConsumer consumer = null;
         try {
-          Message msg = consumer.receive(1000);
-          if (msg == null) {
-            continue;
+          ConnectionFactory cf = new ActiveMQJMSConnectionFactory(coreUrl, cfg.username(), cfg.password());
+          conn = cf.createConnection();
+          conn.start();
+          session = conn.createSession(false, Session.CLIENT_ACKNOWLEDGE);
+          consumer = session.createConsumer(session.createQueue(cfg.queue()));
+
+          System.out.println("Consumer connected site=" + cfg.site() + " queue=" + cfg.queue() + " url=" + coreUrl);
+          backoffMs = 1000;
+
+          while (true) {
+            Message msg = consumer.receive(1000);
+            if (msg == null) {
+              continue;
+            }
+            state.onMessage(msg);
+            msg.acknowledge();
           }
-          state.onMessage(msg);
-          msg.acknowledge();
         } catch (Exception e) {
-          System.err.println("Consume error: " + e.getMessage());
+          System.err.println("Consume error (will reconnect): " + e.getMessage());
+          try {
+            Thread.sleep(backoffMs);
+          } catch (InterruptedException ignored) {
+            Thread.currentThread().interrupt();
+          }
+          backoffMs = Math.min(backoffMs * 2, 30000);
+        } finally {
+          try { if (consumer != null) consumer.close(); } catch (Exception ignored) {}
+          try { if (session != null) session.close(); } catch (Exception ignored) {}
+          try { if (conn != null) conn.close(); } catch (Exception ignored) {}
         }
       }
     }, false);
