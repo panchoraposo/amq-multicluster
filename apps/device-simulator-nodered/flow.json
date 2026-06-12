@@ -12,7 +12,7 @@
     "z": "f1a2b3c4d5e6f7a8",
     "name": "tick",
     "props": [],
-    "repeat": "${MQTT_INTERVAL_MS}",
+    "repeat": "1",
     "crontab": "",
     "once": true,
     "onceDelay": 1,
