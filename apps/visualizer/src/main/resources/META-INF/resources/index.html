@@ -92,6 +92,17 @@
     }
     .side h3{margin:4px 0 10px;font-size:13px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em}
     .links{display:flex;flex-wrap:wrap;gap:8px}
+    .cardbox{background:rgba(0,0,0,.18);border:1px solid rgba(255,255,255,.08);border-radius:14px;padding:12px;margin-top:12px}
+    .btnrow{display:flex;gap:10px;margin-top:8px}
+    .seg{
+      flex:1; padding:10px 10px; border-radius:12px; cursor:pointer; user-select:none;
+      border:1px solid rgba(255,255,255,.10); background:rgba(255,255,255,.04); color:var(--muted);
+      font-size:12px; font-weight:700; display:flex; align-items:center; justify-content:center; gap:8px;
+    }
+    .seg.active{border-color:rgba(255,255,255,.22); color:var(--txt); background:rgba(255,255,255,.07)}
+    .legend{margin-top:12px}
+    .legitem{display:flex;align-items:center;gap:10px;color:var(--muted);font-size:12px;margin-top:8px}
+    .sw{width:10px;height:10px;border-radius:50%}
     .small{font-size:12px;color:var(--muted);line-height:1.35}
     .events{margin-top:12px}
     .row{display:flex;gap:10px;align-items:center;justify-content:space-between}
@@ -203,7 +214,21 @@
     </div>
 
     <aside class="side">
-      <h3>Quick links</h3>
+      <h3>Scenario</h3>
+      <div class="cardbox">
+        <div class="small" id="scenario-desc">Topic (multicast): every subscriber gets a copy.</div>
+        <div class="btnrow">
+          <div class="seg" id="btn-queue">Queue (anycast)</div>
+          <div class="seg" id="btn-topic">Topic (multicast)</div>
+        </div>
+      </div>
+
+      <h3 style="margin-top:14px">Live narration</h3>
+      <div class="cardbox small" id="narration">
+        Topic mode: producers publish to any site and consumers in each site see replicated copies.
+      </div>
+
+      <h3 style="margin-top:14px">Quick links</h3>
       <div class="links" id="quick-links"></div>
 
       <div class="events">
@@ -211,10 +236,17 @@
           <h3 style="margin:14px 0 6px">Latest events</h3>
           <span class="tag">iot.events.v3</span>
         </div>
-        <div class="small">The browser reads only same-origin APIs; cross-cluster calls happen server-side (avoids CORS).</div>
+        <div class="small">Latest payload seen per site (from `event-consumer` snapshot).</div>
         <table>
           <tbody id="events-tbody"></tbody>
         </table>
+      </div>
+
+      <div class="legend">
+        <h3 style="margin-top:14px">Legend</h3>
+        <div class="legitem"><span class="sw" style="background:rgba(56,189,248,.95)"></span> producer → broker</div>
+        <div class="legitem"><span class="sw" style="background:rgba(61,220,132,.95)"></span> broker → consumer</div>
+        <div class="legitem"><span class="sw" style="background:rgba(167,139,250,.85)"></span> mirror links</div>
       </div>
     </aside>
   </div>
@@ -324,6 +356,10 @@
       }
     }
 
+    function tryParseJson(s) {
+      try { return JSON.parse(s); } catch { return null; }
+    }
+
     function renderEvents(map) {
       const tb = document.getElementById("events-tbody");
       if (!tb) return;
@@ -338,7 +374,11 @@
           "</tr>");
           continue;
         }
+        const obj = tryParseJson(last.body);
         let body = last.body;
+        if (obj && obj.deviceId) {
+          body = (obj.deviceId || "-") + " seq=" + (obj.seq ?? "-") + " producer=" + (obj.producer || "-");
+        }
         if (body.length > 120) body = body.slice(0, 120) + "...";
         body = body.replaceAll("<","&lt;").replaceAll(">","&gt;");
         rows.push("<tr>" +
@@ -422,6 +462,28 @@
     startDots();
     loop();
     setInterval(loop, 1500);
+
+    // Scenario toggle (UI-only for now)
+    let scenario = localStorage.getItem("scenario") || "topic";
+    function applyScenario() {
+      const q = document.getElementById("btn-queue");
+      const t = document.getElementById("btn-topic");
+      if (!q || !t) return;
+      q.classList.toggle("active", scenario === "queue");
+      t.classList.toggle("active", scenario === "topic");
+      const desc = document.getElementById("scenario-desc");
+      const narr = document.getElementById("narration");
+      if (scenario === "queue") {
+        if (desc) desc.textContent = "Queue (anycast): each message is delivered to one consumer.";
+        if (narr) narr.textContent = "Queue mode: point-to-point semantics (AMQ Queue). In a later step we will wire producers/consumers to a true anycast address.";
+      } else {
+        if (desc) desc.textContent = "Topic (multicast): every subscriber gets a copy.";
+        if (narr) narr.textContent = "Topic mode: publish/subscribe semantics (AMQ Topic). Each site sees replicated events via mirroring.";
+      }
+    }
+    document.getElementById("btn-queue")?.addEventListener("click", () => { scenario = "queue"; localStorage.setItem("scenario", scenario); applyScenario(); });
+    document.getElementById("btn-topic")?.addEventListener("click", () => { scenario = "topic"; localStorage.setItem("scenario", scenario); applyScenario(); });
+    applyScenario();
   </script>
 </body>
 </html>
