@@ -14,6 +14,24 @@ spec:
     messageMigration: true
     storage:
       size: 10Gi
+    # Keep probe timings consistent across clusters to avoid slow-start CrashLoops.
+    livenessProbe:
+      tcpSocket:
+        port: 8161
+      initialDelaySeconds: 120
+      periodSeconds: 10
+      timeoutSeconds: 5
+      failureThreshold: 12
+    readinessProbe:
+      exec:
+        command:
+          - /bin/bash
+          - -c
+          - /opt/amq/bin/readinessProbe.sh 1
+      initialDelaySeconds: 60
+      periodSeconds: 10
+      timeoutSeconds: 5
+      failureThreshold: 30
   adminUser: admin
   adminPassword: admin
   console:
