@@ -1,0 +1,43 @@
+apiVersion: image.openshift.io/v1
+kind: ImageStream
+metadata:
+  name: onprem-mqtt-haproxy
+  namespace: amq-multicluster-edge
+  annotations:
+    argocd.argoproj.io/sync-wave: "41"
+spec: {}
+
+---
+apiVersion: build.openshift.io/v1
+kind: BuildConfig
+metadata:
+  name: onprem-mqtt-haproxy
+  namespace: amq-multicluster-edge
+  annotations:
+    argocd.argoproj.io/sync-wave: "41"
+spec:
+  runPolicy: Serial
+  triggers:
+    - type: ConfigChange
+    - type: GitHub
+      github:
+        secret: "changeme"
+    - type: Generic
+      generic:
+        secret: "changeme"
+  source:
+    type: Git
+    git:
+      uri: https://github.com/panchoraposo/amq-multicluster.git
+    contextDir: apps/onprem-mqtt-haproxy
+  strategy:
+    type: Docker
+    dockerStrategy:
+      dockerfilePath: Dockerfile
+  output:
+    to:
+      kind: ImageStreamTag
+      name: onprem-mqtt-haproxy:latest
+  successfulBuildsHistoryLimit: 3
+  failedBuildsHistoryLimit: 3
+

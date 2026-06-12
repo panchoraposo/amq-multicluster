@@ -51,8 +51,8 @@ spec:
     spec:
       containers:
         - name: haproxy
-          image: quay.io/haproxytech/haproxy-alpine:2.9
-          imagePullPolicy: IfNotPresent
+          image: image-registry.openshift-image-registry.svc:5000/amq-multicluster-edge/onprem-mqtt-haproxy:latest
+          imagePullPolicy: Always
           ports:
             - containerPort: 8883
               name: mqtts
