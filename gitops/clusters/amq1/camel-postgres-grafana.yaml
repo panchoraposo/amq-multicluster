@@ -265,7 +265,7 @@ spec:
             - name: DEMO_MQTT_PASSWORD
               value: admin
             - name: DEMO_MQTT_TOPIC
-              value: sensors/#
+              value: sensors/%23
             - name: DEMO_MQTT_CLIENT_ID
               value: camel-kaoto-consumer
             - name: DEMO_MQTT_INSECURE_TLS
