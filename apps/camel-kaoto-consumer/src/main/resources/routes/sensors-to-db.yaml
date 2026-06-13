@@ -79,7 +79,7 @@
         - to:
             uri: >-
               sql:INSERT INTO sensor_events (event_id, ts, site, topic, device_id, sensor_type, value, unit, factory, line, raw)
-              VALUES (:#event_id, :#ts, :#site, :#topic, :#device_id, :#sensor_type, :#value, :#unit, :#factory, :#line, CAST(:#raw AS jsonb))
+              VALUES (:#event_id, CAST(:#ts AS timestamptz), :#site, :#topic, :#device_id, :#sensor_type, :#value, :#unit, :#factory, :#line, CAST(:#raw AS jsonb))
         - to:
             uri: "log:db-insert?level=INFO&showHeaders=false&showBody=false"
 
