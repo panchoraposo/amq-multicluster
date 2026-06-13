@@ -26,12 +26,12 @@
     id: sensors-to-db
     from:
       uri: >-
-        paho-mqtt5:{{demo.mqtt.topic}}?brokerUrl=tcp://{{demo.mqtt.host}}:{{demo.mqtt.port}}&userName={{demo.mqtt.username}}&password={{demo.mqtt.password}}&automaticReconnect=true&cleanStart=true
+        paho:{{demo.mqtt.topic}}?brokerUrl=tcp://{{demo.mqtt.host}}:{{demo.mqtt.port}}&userName={{demo.mqtt.username}}&password={{demo.mqtt.password}}&automaticReconnect=true
       steps:
         - setHeader:
             name: topic
             expression:
-              simple: "${header.CamelPahoTopic}"
+              simple: "${header.CamelMqttTopic}"
         - setHeader:
             name: event_id
             expression:
