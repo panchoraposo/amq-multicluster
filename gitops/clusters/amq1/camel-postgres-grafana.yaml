@@ -257,9 +257,9 @@ spec:
             - name: QUARKUS_DATASOURCE_PASSWORD
               valueFrom: { secretKeyRef: { name: postgres-auth, key: password } }
             - name: DEMO_MQTT_HOST
-              value: amq-amq1-mqtts-lb.amq-multicluster-amq.svc
+              value: amq-amq1-mqtt-lb.amq-multicluster-amq.svc
             - name: DEMO_MQTT_PORT
-              value: "8883"
+              value: "1883"
             - name: DEMO_MQTT_USERNAME
               value: admin
             - name: DEMO_MQTT_PASSWORD
