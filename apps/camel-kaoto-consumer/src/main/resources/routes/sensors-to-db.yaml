@@ -68,6 +68,8 @@
             name: line
             expression:
               jsonpath: "$.location.line"
+        - convertBodyTo:
+            type: "java.lang.String"
         - setHeader:
             name: raw
             expression:
