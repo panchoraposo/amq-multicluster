@@ -26,7 +26,7 @@
     id: sensors-to-db
     from:
       uri: >-
-        paho:{{demo.mqtt.topic}}?brokerUrl=tcp://{{demo.mqtt.host}}:{{demo.mqtt.port}}&userName={{demo.mqtt.username}}&password={{demo.mqtt.password}}&automaticReconnect=true
+        paho:{{demo.mqtt.topic}}?brokerUrl=tcp://{{demo.mqtt.host}}:{{demo.mqtt.port}}&userName={{demo.mqtt.username}}&password={{demo.mqtt.password}}&clientId={{demo.mqtt.client-id}}&cleanSession=true&automaticReconnect=true
       steps:
         - setHeader:
             name: topic
