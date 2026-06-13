@@ -270,4 +270,6 @@ spec:
               value: camel-kaoto-consumer
             - name: DEMO_MQTT_INSECURE_TLS
               value: "true"
+            - name: QUARKUS_LOG_CATEGORY__ORG_APACHE_CAMEL_COMPONENT_PAHO__LEVEL
+              value: DEBUG
 
