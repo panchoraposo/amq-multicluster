@@ -8,6 +8,8 @@ import jakarta.ws.rs.Path;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.MediaType;
 
+import java.util.Optional;
+
 @Path("/api/ui")
 @Produces(MediaType.APPLICATION_JSON)
 public class UiConfigResource {
@@ -24,15 +26,15 @@ public class UiConfigResource {
 
   @ConfigMapping(prefix = "demo.links")
   public interface LinksConfig {
-    @WithDefault("") String amq1BrokerConsoleUrl();
-    @WithDefault("") String amq2BrokerConsoleUrl();
-    @WithDefault("") String amq3BrokerConsoleUrl();
-    @WithDefault("") String amq1ConsumerUrl();
-    @WithDefault("") String amq2ConsumerUrl();
-    @WithDefault("") String amq3ConsumerUrl();
-    @WithDefault("") String amq1SimulatorUrl();
-    @WithDefault("") String amq2SimulatorUrl();
-    @WithDefault("") String amq3SimulatorUrl();
+    Optional<String> amq1BrokerConsoleUrl();
+    Optional<String> amq2BrokerConsoleUrl();
+    Optional<String> amq3BrokerConsoleUrl();
+    Optional<String> amq1ConsumerUrl();
+    Optional<String> amq2ConsumerUrl();
+    Optional<String> amq3ConsumerUrl();
+    Optional<String> amq1SimulatorUrl();
+    Optional<String> amq2SimulatorUrl();
+    Optional<String> amq3SimulatorUrl();
   }
 
   public record UiPayload(
@@ -66,15 +68,15 @@ public class UiConfigResource {
       ui.amq2Color(),
       ui.amq3Label(),
       ui.amq3Color(),
-      links.amq1BrokerConsoleUrl(),
-      links.amq2BrokerConsoleUrl(),
-      links.amq3BrokerConsoleUrl(),
-      links.amq1ConsumerUrl(),
-      links.amq2ConsumerUrl(),
-      links.amq3ConsumerUrl(),
-      links.amq1SimulatorUrl(),
-      links.amq2SimulatorUrl(),
-      links.amq3SimulatorUrl()
+      links.amq1BrokerConsoleUrl().orElse(""),
+      links.amq2BrokerConsoleUrl().orElse(""),
+      links.amq3BrokerConsoleUrl().orElse(""),
+      links.amq1ConsumerUrl().orElse(""),
+      links.amq2ConsumerUrl().orElse(""),
+      links.amq3ConsumerUrl().orElse(""),
+      links.amq1SimulatorUrl().orElse(""),
+      links.amq2SimulatorUrl().orElse(""),
+      links.amq3SimulatorUrl().orElse("")
     );
   }
 }

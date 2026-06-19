@@ -20,6 +20,7 @@ import java.time.Duration;
 import java.util.Base64;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 @Path("/api/broker")
 @Produces(MediaType.APPLICATION_JSON)
@@ -42,9 +43,9 @@ public class BrokerStatsResource {
 
   @ConfigMapping(prefix = "demo.jolokia")
   public interface JolokiaCfg {
-    @WithDefault("") String amq1BaseUrl();
-    @WithDefault("") String amq2BaseUrl();
-    @WithDefault("") String amq3BaseUrl();
+    Optional<String> amq1BaseUrl();
+    Optional<String> amq2BaseUrl();
+    Optional<String> amq3BaseUrl();
     @WithDefault("admin") String username();
     @WithDefault("admin") String password();
   }
@@ -67,9 +68,9 @@ public class BrokerStatsResource {
   @Path("/{site}/queue")
   public BrokerStats queue(@jakarta.ws.rs.PathParam("site") String site) throws Exception {
     String base = switch (site) {
-      case "amq1" -> jolokia.amq1BaseUrl();
-      case "amq2" -> jolokia.amq2BaseUrl();
-      case "amq3" -> jolokia.amq3BaseUrl();
+      case "amq1" -> jolokia.amq1BaseUrl().orElse("");
+      case "amq2" -> jolokia.amq2BaseUrl().orElse("");
+      case "amq3" -> jolokia.amq3BaseUrl().orElse("");
       default -> throw new NotFoundException("Unknown site: " + site);
     };
     if (base == null || base.isBlank()) {
@@ -133,9 +134,9 @@ public class BrokerStatsResource {
   @Path("/{site}/health")
   public BrokerStats health(@jakarta.ws.rs.PathParam("site") String site) throws Exception {
     String base = switch (site) {
-      case "amq1" -> jolokia.amq1BaseUrl();
-      case "amq2" -> jolokia.amq2BaseUrl();
-      case "amq3" -> jolokia.amq3BaseUrl();
+      case "amq1" -> jolokia.amq1BaseUrl().orElse("");
+      case "amq2" -> jolokia.amq2BaseUrl().orElse("");
+      case "amq3" -> jolokia.amq3BaseUrl().orElse("");
       default -> throw new NotFoundException("Unknown site: " + site);
     };
     if (base == null || base.isBlank()) {

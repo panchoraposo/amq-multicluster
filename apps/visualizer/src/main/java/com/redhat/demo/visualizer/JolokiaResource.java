@@ -16,6 +16,7 @@ import java.net.http.HttpResponse;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.util.Base64;
+import java.util.Optional;
 
 @Path("/api/jolokia")
 @Produces(MediaType.APPLICATION_JSON)
@@ -27,9 +28,9 @@ public class JolokiaResource {
      * Base URL must include `/console/jolokia`, e.g.:
      * http://<route-host>/console/jolokia
      */
-    String amq1BaseUrl();
-    String amq2BaseUrl();
-    String amq3BaseUrl();
+    Optional<String> amq1BaseUrl();
+    Optional<String> amq2BaseUrl();
+    Optional<String> amq3BaseUrl();
 
     @WithDefault("admin")
     String username();
@@ -60,9 +61,9 @@ public class JolokiaResource {
 
   private String fetch(String site, String path) throws Exception {
     String base = switch (site) {
-      case "amq1" -> cfg.amq1BaseUrl();
-      case "amq2" -> cfg.amq2BaseUrl();
-      case "amq3" -> cfg.amq3BaseUrl();
+      case "amq1" -> cfg.amq1BaseUrl().orElse("");
+      case "amq2" -> cfg.amq2BaseUrl().orElse("");
+      case "amq3" -> cfg.amq3BaseUrl().orElse("");
       default -> throw new NotFoundException("Unknown site: " + site);
     };
     if (base == null || base.isBlank()) {

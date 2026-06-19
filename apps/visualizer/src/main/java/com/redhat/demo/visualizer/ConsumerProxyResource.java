@@ -15,6 +15,7 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
+import java.util.Optional;
 
 @Path("/api/consumer")
 @Produces(MediaType.APPLICATION_JSON)
@@ -22,9 +23,9 @@ public class ConsumerProxyResource {
 
   @ConfigMapping(prefix = "demo.consumers")
   public interface ConsumersConfig {
-    String amq1SnapshotUrl();
-    String amq2SnapshotUrl();
-    String amq3SnapshotUrl();
+    Optional<String> amq1SnapshotUrl();
+    Optional<String> amq2SnapshotUrl();
+    Optional<String> amq3SnapshotUrl();
   }
 
   private final HttpClient http = HttpClient.newBuilder()
@@ -38,9 +39,9 @@ public class ConsumerProxyResource {
   @Path("/{site}/snapshot")
   public String snapshot(@jakarta.ws.rs.PathParam("site") String site, @QueryParam("mode") String mode) throws Exception {
     String url = switch (site) {
-      case "amq1" -> cfg.amq1SnapshotUrl();
-      case "amq2" -> cfg.amq2SnapshotUrl();
-      case "amq3" -> cfg.amq3SnapshotUrl();
+      case "amq1" -> cfg.amq1SnapshotUrl().orElse("");
+      case "amq2" -> cfg.amq2SnapshotUrl().orElse("");
+      case "amq3" -> cfg.amq3SnapshotUrl().orElse("");
       default -> throw new NotFoundException("Unknown site: " + site);
     };
     if (url == null || url.isBlank()) {
