@@ -96,6 +96,7 @@
     .met .k{font-size:10px;color:var(--muted);margin-top:3px}
     .met.hl .v{color:var(--cyan)}
     .met.bad .v{color:#ff7a7a}
+    .met.good .v{color:var(--green)}
 
     .side{display:flex;flex-direction:column;gap:14px}
     .panel{background:var(--card);border:1px solid var(--cardb);border-radius:16px;
@@ -175,7 +176,7 @@
         <div class="ttl">Legend</div>
         <div class="row"><span class="swatch" style="background:#38bdf8"></span> Ingest (sensors → broker)</div>
         <div class="row"><span class="swatch" style="background:#3ddc84"></span> Consume (broker → consumer)</div>
-        <div class="row"><span class="swatch" style="background:#2dd4bf"></span> Mirror replication</div>
+        <div class="row"><span class="swatch" style="background:#2dd4bf"></span> AMQP mirror replication (loop‑safe)</div>
       </div>
       <div id="stage" class="stage">
         <svg id="svg">
@@ -253,6 +254,9 @@
       ana:{x:.84,y:.78},  // Camel consumer (analytics)
       pg:{x:.92,y:.68},   // Postgres
       gf:{x:.92,y:.88},   // Grafana
+
+      // mirror loop prevention badge
+      loop:{x:.50,y:.34},
     };
 
     function nodeEl(id){ return document.getElementById("node-"+id); }
@@ -326,7 +330,6 @@
       const stCls = online ? "online" : "offline";
       const stTxt = online ? "online" : "offline";
       const received = snap ? (snap.received ?? 0) : 0;
-      const dup = snap ? (snap.duplicates ?? 0) : 0;
       const last = snap && snap.last && snap.last.length ? snap.last[0] : null;
       const lastId = last && last.body && String(last.body).includes("\"eventId\"") ? "ok" : "-";
 
@@ -355,7 +358,7 @@
               `
               : `
                 <div class="met hl"><div class="v mono">${received}</div><div class="k">events (unique)</div></div>
-                <div class="met bad"><div class="v mono">${dup}</div><div class="k">duplicates</div></div>
+                <div class="met good"><div class="v mono">on</div><div class="k">mirror loop prevention</div></div>
                 <div class="met"><div class="v mono">${(snap && snap.last ? snap.last.length : 0)}</div><div class="k">last buffer</div></div>
                 <div class="met"><div class="v mono">${lastId}</div><div class="k">last eventId</div></div>
               `
@@ -392,6 +395,9 @@
       ensureNode("pg", `<div class="endpoint"><div class="ic">🗄️</div><div class="lbl">PostgreSQL</div><div class="sub">store events<div class="badge">RHEL</div></div></div>`);
       ensureNode("gf", `<div class="endpoint"><div class="ic">📊</div><div class="lbl">Grafana</div><div class="sub">live dashboard<div class="badge">RHEL</div></div></div>`);
 
+      // Mirror loop prevention (AMQP mirror is origin-aware)
+      ensureNode("loop", `<div class="endpoint"><div class="ic">🛡️</div><div class="lbl">Loop prevention</div><div class="sub">no re‑mirroring<div class="badge">AMQP Mirror</div></div></div>`);
+
       moveNode("dev1", layout.dev1);
       moveNode("dev2", layout.dev2);
       moveNode("dev3", layout.dev3);
@@ -407,6 +413,7 @@
       moveNode("ana", layout.ana);
       moveNode("pg", layout.pg);
       moveNode("gf", layout.gf);
+      moveNode("loop", layout.loop);
     }
 
     function drawPaths(){
@@ -553,7 +560,7 @@
 
     function updateModeHelp(){
       $("#modeHelp").textContent = mode==="topic"
-        ? "Topic (multicast): on‑prem devices publish to HAProxy and are distributed to AMQ1/AMQ2; Public Cloud‑only devices ingest to AMQ3. Mirrors converge data across all brokers."
+        ? "Topic (multicast): on‑prem devices publish to HAProxy and are distributed to AMQ1/AMQ2; Public Cloud‑only devices ingest to AMQ3. Convergence is done by AMQP mirroring (origin-aware, prevents re‑mirroring loops)."
         : "Queue (anycast): point-to-point delivery (single consumer receives each message).";
     }
 
@@ -575,7 +582,7 @@
         $("#narr").innerHTML =
           `<b>On‑prem devices</b> connect to <b>HAProxy</b> and are distributed to <b>${siteLabel("amq1")}</b>/<b>${siteLabel("amq2")}</b>. ` +
           `<b>Public Cloud‑only devices</b> publish directly to <b>${siteLabel("amq3")}</b>. ` +
-          `Mirrors replicate the topic so each cluster can consume a converged copy.`;
+          `AMQP mirroring converges the topic so each cluster can consume a converged copy, while <b>preventing infinite loops</b> (no re‑mirroring of mirrored messages).`;
       }else{
         $("#narr").innerHTML =
           `Queue mode (anycast): point-to-point semantics. Use this view when demonstrating competing consumers and HA failover without fan-out.`;
