@@ -35,26 +35,15 @@ podman run --rm -d --name amq-local \
 
 Open the console at `http://localhost:8161/console` (user/pass: `admin` / `admin`).
 
-## event-consumer (Quarkus dev mode) ×3
+## event-consumer (Quarkus dev mode)
 
-In three terminals, start one consumer per site (ports `8081`, `8082`, `8083`).
-Note: `sensors/#` must be URL-encoded as `sensors/%23` for some MQTT clients/libraries.
+For local dev, run a single `event-consumer` and point the visualizer's three sites at it.
 
 ```bash
-# terminal 1
 DEMO_BROKER_URL='tcp://localhost:61616' DEMO_BROKER_USERNAME=admin DEMO_BROKER_PASSWORD=admin \
-DEMO_BROKER_SITE=amq1 DEMO_MQTT_SITE=amq1 DEMO_MQTT_HOST=localhost DEMO_MQTT_PORT=1883 DEMO_MQTT_TOPIC='sensors/#' \
-mvn -pl apps/event-consumer quarkus:dev -Dquarkus.http.port=8081
-
-# terminal 2
-DEMO_BROKER_URL='tcp://localhost:61616' DEMO_BROKER_USERNAME=admin DEMO_BROKER_PASSWORD=admin \
-DEMO_BROKER_SITE=amq2 DEMO_MQTT_SITE=amq2 DEMO_MQTT_HOST=localhost DEMO_MQTT_PORT=1883 DEMO_MQTT_TOPIC='sensors/#' \
-mvn -pl apps/event-consumer quarkus:dev -Dquarkus.http.port=8082
-
-# terminal 3
-DEMO_BROKER_URL='tcp://localhost:61616' DEMO_BROKER_USERNAME=admin DEMO_BROKER_PASSWORD=admin \
-DEMO_BROKER_SITE=amq3 DEMO_MQTT_SITE=amq3 DEMO_MQTT_HOST=localhost DEMO_MQTT_PORT=1883 DEMO_MQTT_TOPIC='sensors/#' \
-mvn -pl apps/event-consumer quarkus:dev -Dquarkus.http.port=8083
+DEMO_BROKER_SITE=local \
+DEMO_MQTT_SITE=local DEMO_MQTT_HOST=localhost DEMO_MQTT_PORT=1883 DEMO_MQTT_SCHEME=tcp DEMO_MQTT_TOPIC='sensors/#' \
+mvn -pl apps/event-consumer quarkus:dev -Ddebug=false -Dquarkus.http.port=8081
 ```
 
 ## visualizer (Quarkus dev mode)
@@ -63,8 +52,8 @@ In a 4th terminal:
 
 ```bash
 DEMO_CONSUMERS_AMQ1_SNAPSHOT_URL='http://localhost:8081/api/snapshot' \
-DEMO_CONSUMERS_AMQ2_SNAPSHOT_URL='http://localhost:8082/api/snapshot' \
-DEMO_CONSUMERS_AMQ3_SNAPSHOT_URL='http://localhost:8083/api/snapshot' \
+DEMO_CONSUMERS_AMQ2_SNAPSHOT_URL='http://localhost:8081/api/snapshot' \
+DEMO_CONSUMERS_AMQ3_SNAPSHOT_URL='http://localhost:8081/api/snapshot' \
 DEMO_JOLOKIA_AMQ1_BASE_URL='http://localhost:8161/console/jolokia' \
 DEMO_JOLOKIA_AMQ2_BASE_URL='http://localhost:8161/console/jolokia' \
 DEMO_JOLOKIA_AMQ3_BASE_URL='http://localhost:8161/console/jolokia' \

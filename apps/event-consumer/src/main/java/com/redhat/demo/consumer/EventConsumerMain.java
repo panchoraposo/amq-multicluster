@@ -48,6 +48,13 @@ public class EventConsumerMain implements QuarkusApplication {
   public interface MqttConfig {
     @WithDefault("") String host();
     @WithDefault("8883") int port();
+    /**
+     * MQTT broker URL scheme.
+     * - ssl: mqtts-style TCP+TLS (default for OpenShift demo)
+     * - tcp: plain TCP (useful for local dev)
+     * - auto: tcp for 1883, ssl otherwise
+     */
+    @WithDefault("auto") String scheme();
     @WithDefault("sensors/#") String topic();
     @WithDefault("true") boolean insecureTls();
     @WithDefault("amq1") String site();
@@ -101,7 +108,11 @@ public class EventConsumerMain implements QuarkusApplication {
   }
 
   private void startMqtt() throws Exception {
-    String brokerUrl = "ssl://" + mqtt.host() + ":" + mqtt.port();
+    String scheme = mqtt.scheme();
+    if (scheme == null || scheme.isBlank() || "auto".equalsIgnoreCase(scheme)) {
+      scheme = (mqtt.port() == 1883) ? "tcp" : "ssl";
+    }
+    String brokerUrl = scheme + "://" + mqtt.host() + ":" + mqtt.port();
     String clientId = "event-consumer-" + mqtt.site() + "-" + System.getenv().getOrDefault("HOSTNAME", "pod");
 
     MqttConnectOptions opts = new MqttConnectOptions();
@@ -109,7 +120,7 @@ public class EventConsumerMain implements QuarkusApplication {
     opts.setCleanSession(true);
     opts.setConnectionTimeout(10);
     opts.setKeepAliveInterval(30);
-    if (mqtt.insecureTls()) {
+    if ("ssl".equalsIgnoreCase(scheme) && mqtt.insecureTls()) {
       opts.setSocketFactory(trustAllSocketFactory());
       opts.setHttpsHostnameVerificationEnabled(false);
     }
